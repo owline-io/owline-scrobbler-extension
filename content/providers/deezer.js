@@ -16,8 +16,11 @@ function getTrackInfo() {
   );
 
   const album = document.querySelector("[data-testid='item_subtitle']:nth-child(2)")?.textContent?.trim() || null;
+  const cover_url = document.querySelector("[data-testid='item_cover'] img")?.src
+    || document.querySelector(".player-track-cover img")?.src
+    || null;
 
-  return { title, artist, album, duration };
+  return { title, artist, album, cover_url, duration };
 }
 
 function isPlaying() {
