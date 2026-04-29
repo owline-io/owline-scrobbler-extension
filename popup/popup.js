@@ -124,6 +124,7 @@ async function renderDestinations() {
     for (const f of fields) {
       const input = document.createElement("input");
       input.type = "password";
+      input.autocomplete = "off";
       input.placeholder = f.label;
       input.value = state.credentials?.[f.key] || "";
       input.dataset.field = f.key;

@@ -57,10 +57,20 @@ function buildPayload(track) {
   };
 }
 
+function sanitizeLogEntry(entry) {
+  const clean = { ...entry };
+  delete clean.credentials;
+  delete clean.token;
+  delete clean.api_key;
+  delete clean.api_secret;
+  delete clean.session_key;
+  return clean;
+}
+
 async function pushLog(entry) {
   const data = await chrome.storage.local.get(KEYS.LOGS);
   const logs = data[KEYS.LOGS] || [];
-  logs.unshift({ at: Date.now(), ...entry });
+  logs.unshift({ at: Date.now(), ...sanitizeLogEntry(entry) });
   if (logs.length > CONFIG.MAX_LOGS) logs.length = CONFIG.MAX_LOGS;
   await chrome.storage.local.set({ [KEYS.LOGS]: logs });
 }
@@ -241,6 +251,10 @@ const HANDLERS = {
   },
   SET_DESTINATION: (msg, sendResponse) => {
     const { id, enabled, credentials } = msg;
+    if (!CONFIG.DESTINATIONS[id]) {
+      sendResponse({ error: "unknown_destination" });
+      return true;
+    }
     (async () => {
       if (credentials !== undefined) await destinations.setCredentials(id, credentials);
       if (enabled !== undefined) await destinations.setEnabled(id, enabled);
@@ -249,6 +263,10 @@ const HANDLERS = {
     return true;
   },
   CLEAR_DESTINATION: (msg, sendResponse) => {
+    if (!CONFIG.DESTINATIONS[msg.id]) {
+      sendResponse({ error: "unknown_destination" });
+      return true;
+    }
     destinations.clearCredentials(msg.id).then(() => sendResponse({ ok: true }));
     return true;
   },
