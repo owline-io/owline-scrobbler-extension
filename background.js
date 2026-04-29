@@ -126,7 +126,7 @@ function updateBadge(track) {
   chrome.action.setTitle({ title: `${track.artist} - ${track.title}` });
 }
 
-const GOOGLE_CLIENT_ID = "55887450-jpfnthtv3sp0321b1hdidq4c2maiddb0.apps.googleusercontent.com";
+const GOOGLE_CLIENT_ID = "55887450-l3337k4faqim9i5jspcljs3mqqo9m8ik.apps.googleusercontent.com";
 
 async function googleLogin() {
   const redirectUrl = chrome.identity.getRedirectURL();
