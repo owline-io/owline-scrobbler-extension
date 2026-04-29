@@ -3,7 +3,18 @@
   root.OWLINE = root.OWLINE || {};
   const { CONFIG, KEYS } = root.OWLINE;
 
-  const MIGRATIONS = {};
+  const MIGRATIONS = {
+    2: async function () {
+      const data = await chrome.storage.local.get(KEYS.DESTINATIONS);
+      if (!data[KEYS.DESTINATIONS]) {
+        const defaults = {};
+        for (const [id, meta] of Object.entries(CONFIG.DESTINATIONS)) {
+          defaults[id] = { enabled: meta.default, credentials: null };
+        }
+        await chrome.storage.local.set({ [KEYS.DESTINATIONS]: defaults });
+      }
+    },
+  };
 
   async function run() {
     const data = await chrome.storage.local.get(KEYS.STORAGE_VERSION);
