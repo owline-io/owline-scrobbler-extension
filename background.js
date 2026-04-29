@@ -10,6 +10,30 @@ async function getToken() {
   return owline_token || null;
 }
 
+async function refreshToken() {
+  const { owline_refresh } = await chrome.storage.local.get("owline_refresh");
+  if (!owline_refresh) return null;
+  try {
+    const res = await fetch(`${API_BASE}/auth/refresh`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refresh_token: owline_refresh }),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const token = data.access_token || data.token;
+    if (token) {
+      await chrome.storage.local.set({ owline_token: token });
+      if (data.refresh_token) {
+        await chrome.storage.local.set({ owline_refresh: data.refresh_token });
+      }
+    }
+    return token;
+  } catch {
+    return null;
+  }
+}
+
 async function scrobble(track) {
   const token = await getToken();
   if (!token) {
@@ -40,6 +64,28 @@ async function scrobble(track) {
     });
 
     if (res.status === 401) {
+      const newToken = await refreshToken();
+      if (newToken) {
+        const retry = await fetch(`${API_BASE}/scrobbles`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${newToken}`,
+          },
+          body: JSON.stringify({
+            track: track.title,
+            artist: track.artist,
+            album: track.album || null,
+            duration: track.duration || null,
+            source: track.source,
+          }),
+        });
+        if (retry.ok) {
+          lastScrobble = { key, at: now };
+          updateBadge(track);
+          return { ok: true, refreshed: true };
+        }
+      }
       pendingQueue.push(track);
       return { queued: true, reason: "auth_expired" };
     }
@@ -90,6 +136,8 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
 });
 
 chrome.alarms.create("flush-queue", { periodInMinutes: 5 });
+chrome.alarms.create("refresh-token", { periodInMinutes: 20 });
 chrome.alarms.onAlarm.addListener((alarm) => {
   if (alarm.name === "flush-queue") flushQueue();
+  if (alarm.name === "refresh-token") refreshToken();
 });
