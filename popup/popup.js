@@ -170,6 +170,98 @@ $("#google-btn").addEventListener("click", () => {
   });
 });
 
+document.querySelectorAll(".tab").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const target = btn.dataset.tab;
+    document.querySelectorAll(".tab").forEach((b) => b.classList.toggle("active", b === btn));
+    document.querySelectorAll(".tab-panel").forEach((p) => {
+      p.classList.toggle("hidden", p.id !== `tab-${target}`);
+    });
+    if (target === "logs") renderLogs();
+  });
+});
+
+function formatTime(ts) {
+  const d = new Date(ts);
+  const hh = String(d.getHours()).padStart(2, "0");
+  const mm = String(d.getMinutes()).padStart(2, "0");
+  const ss = String(d.getSeconds()).padStart(2, "0");
+  return `${hh}:${mm}:${ss}`;
+}
+
+async function renderLogs() {
+  const data = await chrome.storage.local.get(KEYS.LOGS);
+  const logs = data[KEYS.LOGS] || [];
+  const container = $("#logs");
+  container.textContent = "";
+
+  if (logs.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "log-empty";
+    empty.textContent = "NO LOGS YET";
+    container.appendChild(empty);
+    return;
+  }
+
+  for (const entry of logs) {
+    const card = document.createElement("div");
+    card.className = "log";
+
+    const head = document.createElement("div");
+    head.className = "log-head";
+
+    const status = document.createElement("span");
+    status.className = `log-status ${entry.status}`;
+    status.textContent = entry.status;
+
+    const track = document.createElement("span");
+    track.className = "log-track";
+    track.textContent = entry.payload
+      ? `${entry.payload.artist} · ${entry.payload.track}`
+      : "—";
+
+    const time = document.createElement("span");
+    time.className = "log-time";
+    time.textContent = formatTime(entry.at);
+
+    head.appendChild(status);
+    head.appendChild(track);
+    head.appendChild(time);
+
+    const body = document.createElement("pre");
+    body.className = "log-body hidden";
+    body.textContent = JSON.stringify(entry, null, 2);
+
+    head.addEventListener("click", () => {
+      body.classList.toggle("hidden");
+    });
+
+    card.appendChild(head);
+    card.appendChild(body);
+    container.appendChild(card);
+  }
+}
+
+$("#logs-clear").addEventListener("click", async () => {
+  await chrome.storage.local.remove(KEYS.LOGS);
+  renderLogs();
+});
+
+$("#logs-download").addEventListener("click", async () => {
+  const data = await chrome.storage.local.get(KEYS.LOGS);
+  const logs = data[KEYS.LOGS] || [];
+  const blob = new Blob([JSON.stringify(logs, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const ts = new Date().toISOString().replace(/[:.]/g, "-");
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `owline-logs-${ts}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+});
+
 $("#logout-btn").addEventListener("click", async () => {
   const token = await auth.getToken();
   if (token) api.logout(token).catch(() => {});
