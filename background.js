@@ -4,10 +4,11 @@ importScripts(
   "shared/api.js",
   "shared/auth.js",
   "shared/providers.js",
+  "shared/destinations.js",
   "shared/migrations.js",
 );
 
-const { CONFIG, KEYS, api, auth, migrations } = self.OWLINE;
+const { CONFIG, KEYS, api, auth, destinations, migrations } = self.OWLINE;
 const { DEBOUNCE_MS, MAX_QUEUE, MAX_FLUSH_ATTEMPTS, GOOGLE_CLIENT_ID } = CONFIG;
 
 const bootReady = (async () => {
@@ -128,9 +129,11 @@ async function scrobble(track) {
 
     await saveLastScrobble(key, now);
     await updateBadge(track);
-    await pushLog({ status: "sent", httpStatus: res.status, refreshed: !!refreshed, payload });
 
-    return refreshed ? { ok: true, refreshed: true } : { ok: true };
+    const destResults = await destinations.dispatch(track);
+    await pushLog({ status: "sent", httpStatus: res.status, refreshed: !!refreshed, destinations: destResults, payload });
+
+    return refreshed ? { ok: true, refreshed: true, destinations: destResults } : { ok: true, destinations: destResults };
   } catch (err) {
     await enqueue(track);
     await pushLog({ status: "queued", reason: err.message, payload });
@@ -164,7 +167,8 @@ async function flushQueue() {
       const res = await api.postScrobble(token, track);
       if (res.ok) {
         succeeded++;
-        await pushLog({ status: "flushed", httpStatus: res.status, payload });
+        const destResults = await destinations.dispatch(track);
+        await pushLog({ status: "flushed", httpStatus: res.status, destinations: destResults, payload });
       } else {
         failed.push(track);
         await pushLog({ status: "queued", reason: `http_${res.status}`, httpStatus: res.status, payload });
@@ -233,6 +237,19 @@ const HANDLERS = {
   },
   FLUSH_QUEUE: (_msg, sendResponse) => {
     flushQueue().then(() => sendResponse({ flushed: true }));
+    return true;
+  },
+  SET_DESTINATION: (msg, sendResponse) => {
+    const { id, enabled, credentials } = msg;
+    (async () => {
+      if (credentials !== undefined) await destinations.setCredentials(id, credentials);
+      if (enabled !== undefined) await destinations.setEnabled(id, enabled);
+      sendResponse({ ok: true });
+    })();
+    return true;
+  },
+  CLEAR_DESTINATION: (msg, sendResponse) => {
+    destinations.clearCredentials(msg.id).then(() => sendResponse({ ok: true }));
     return true;
   },
 };
