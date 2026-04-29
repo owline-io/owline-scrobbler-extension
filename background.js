@@ -130,6 +130,7 @@ async function scrobble(track) {
     await saveLastScrobble(key, now);
     await updateBadge(track);
     await pushLog({ status: "sent", httpStatus: res.status, refreshed: !!refreshed, payload });
+
     return refreshed ? { ok: true, refreshed: true } : { ok: true };
   } catch (err) {
     await enqueue(track);
