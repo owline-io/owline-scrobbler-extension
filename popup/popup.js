@@ -106,22 +106,32 @@ async function renderDestinations() {
     const header = document.createElement("div");
     header.className = "dest-header";
 
+    const left = document.createElement("div");
+    left.style.cssText = "display:flex;align-items:center;gap:8px;";
+
+    const chevron = document.createElement("span");
+    chevron.className = "chevron";
+    chevron.textContent = "▸";
+
     const label = document.createElement("span");
     label.className = "dest-name";
     label.textContent = meta.name;
+
+    left.appendChild(chevron);
+    left.appendChild(label);
 
     const toggle = document.createElement("button");
     toggle.type = "button";
     toggle.className = "toggle" + (state.enabled ? " on" : "");
     toggle.setAttribute("aria-label", `Toggle ${meta.name}`);
 
-    header.appendChild(label);
+    header.appendChild(left);
     header.appendChild(toggle);
     card.appendChild(header);
 
     const fields = DEST_FIELDS[id] || [];
     const form = document.createElement("div");
-    form.className = "dest-form" + (state.enabled ? "" : " hidden");
+    form.className = "dest-form hidden";
 
     const inputs = {};
     for (const f of fields) {
@@ -157,15 +167,26 @@ async function renderDestinations() {
       toggle.classList.remove("on");
       for (const f of fields) inputs[f.key].value = "";
       form.classList.add("hidden");
+      chevron.classList.remove("open");
     });
     form.appendChild(disconnectBtn);
 
     card.appendChild(form);
 
+    header.style.cursor = "pointer";
+    header.addEventListener("click", (e) => {
+      if (e.target === toggle || toggle.contains(e.target)) return;
+      form.classList.toggle("hidden");
+      chevron.classList.toggle("open");
+    });
+
     toggle.addEventListener("click", async () => {
       const next = !toggle.classList.contains("on");
       toggle.classList.toggle("on", next);
-      form.classList.toggle("hidden", !next);
+      if (next) {
+        form.classList.remove("hidden");
+        chevron.classList.add("open");
+      }
       if (!next) {
         chrome.runtime.sendMessage({ type: "SET_DESTINATION", id, enabled: false });
       }
@@ -373,13 +394,6 @@ $("#logout-btn").addEventListener("click", async () => {
   if (token) api.logout(token).catch(() => {});
   await auth.clearSession();
   showLogin();
-});
-
-$("#destinations-toggle").addEventListener("click", () => {
-  const body = $("#destinations-body");
-  const chevron = $("#destinations-chevron");
-  body.classList.toggle("hidden");
-  chevron.classList.toggle("open");
 });
 
 init();

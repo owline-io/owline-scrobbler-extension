@@ -363,39 +363,15 @@ input::placeholder {
 .log-body.hidden { display: none; }
 .log-body .key { color: #8a8a92; }
 
-.collapsible {
-  margin-top: 12px;
-  border-top: 1px solid #2a2a32;
-  padding-top: 10px;
-}
-.collapsible-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  font-family: 'Fira Mono', monospace;
-  font-size: 9px;
-  font-weight: 700;
-  color: #8a8a92;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-}
-.collapsible-toggle:hover { color: #f1f1f4; }
 .chevron {
   font-size: 10px;
+  color: #8a8a92;
   transition: transform 0.12s ease;
 }
 .chevron.open { transform: rotate(90deg); }
-.collapsible-body {
-  margin-top: 10px;
-}
-.collapsible-body.hidden { display: none; }
 
 .destinations {
+  margin-top: 10px;
   display: flex;
   flex-direction: column;
   gap: 10px;
