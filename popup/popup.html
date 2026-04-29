@@ -2,212 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Fira+Mono:wght@400;700&family=Inter:wght@400;500;700&display=swap');
-
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-
-    body {
-      width: 320px;
-      font-family: 'Inter', system-ui, sans-serif;
-      background: #0e0e12;
-      color: #cfcfd6;
-      font-size: 12px;
-      line-height: 1.5;
-    }
-
-    .mono { font-family: 'Fira Mono', monospace; }
-
-    .header {
-      padding: 14px 16px;
-      border-bottom: 2px solid #d8d8de;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      background: #13131a;
-    }
-    .header-logo {
-      width: 22px;
-      height: 22px;
-      border-radius: 0;
-    }
-    .header h1 {
-      font-family: 'Fira Mono', monospace;
-      font-size: 13px;
-      font-weight: 700;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: #f1f1f4;
-    }
-    .header .dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      margin-left: auto;
-    }
-    .dot-green { background: #4ade80; }
-    .dot-red { background: #ef4444; }
-
-    .section {
-      padding: 14px 16px;
-      border-bottom: 2px solid #2a2a32;
-    }
-    .section-title {
-      font-family: 'Fira Mono', monospace;
-      font-size: 9px;
-      font-weight: 700;
-      color: #8a8a92;
-      margin-bottom: 10px;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-    }
-
-    .now-playing-wrap {
-      font-family: 'Fira Mono', monospace;
-      font-size: 12px;
-      line-height: 1.5;
-      color: #4ade80;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-    .now-playing-wrap .artist {
-      color: #8a8a92;
-      font-size: 10px;
-    }
-    .empty {
-      color: #8a8a92;
-      font-family: 'Fira Mono', monospace;
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-    }
-
-    .stats {
-      display: flex;
-      gap: 24px;
-    }
-    .stat-item .value {
-      font-family: 'Fira Mono', monospace;
-      font-size: 18px;
-      font-weight: 700;
-      color: #f1f1f4;
-    }
-    .stat-item .label {
-      font-family: 'Fira Mono', monospace;
-      font-size: 9px;
-      color: #8a8a92;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-    }
-
-    input {
-      width: 100%;
-      background: #13131a;
-      border: 2px solid #2a2a32;
-      color: #f1f1f4;
-      padding: 10px 12px;
-      font-family: 'Fira Mono', monospace;
-      font-size: 11px;
-      letter-spacing: 0.05em;
-      margin-bottom: 8px;
-      text-transform: uppercase;
-    }
-    input:focus {
-      outline: none;
-      border-color: #d8d8de;
-    }
-    input::placeholder {
-      color: #8a8a92;
-      text-transform: uppercase;
-    }
-
-    .btn {
-      width: 100%;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      padding: 10px 16px;
-      border: 2px solid #d8d8de;
-      background: #d8d8de;
-      color: #0e0e12;
-      font-family: 'Fira Mono', monospace;
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      cursor: pointer;
-      transition: background-color 0.12s ease, color 0.12s ease;
-    }
-    .btn:hover {
-      background: #13131a;
-      color: #d8d8de;
-    }
-    .btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    .btn-google {
-      background: #f1f1f4;
-      border-color: #f1f1f4;
-      color: #1f1f24;
-      font-family: 'Inter', sans-serif;
-      font-weight: 500;
-      letter-spacing: 0.06em;
-    }
-    .btn-google:hover {
-      background: #13131a;
-      color: #f1f1f4;
-      border-color: #2a2a32;
-    }
-
-    .btn-danger {
-      background: transparent;
-      color: #ef4444;
-      border-color: #ef4444;
-    }
-    .btn-danger:hover {
-      background: #ef4444;
-      color: #0e0e12;
-    }
-
-    .divider {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin: 12px 0 10px;
-    }
-    .divider-line {
-      flex: 1;
-      height: 2px;
-      background: #2a2a32;
-    }
-    .divider-text {
-      font-family: 'Fira Mono', monospace;
-      font-size: 9px;
-      color: #8a8a92;
-      letter-spacing: 0.2em;
-    }
-
-    .error {
-      font-family: 'Fira Mono', monospace;
-      color: #ef4444;
-      font-size: 10px;
-      margin-top: 8px;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-    }
-    .hidden { display: none; }
-
-    .account-user {
-      font-family: 'Fira Mono', monospace;
-      font-size: 12px;
-      color: #f1f1f4;
-      letter-spacing: 0.06em;
-      margin-bottom: 10px;
-    }
-  </style>
+  <link rel="stylesheet" href="popup.css">
 </head>
 <body>
   <div class="header">
@@ -252,12 +47,22 @@
       </div>
     </div>
     <div class="section">
+      <div class="section-title">PROVIDERS</div>
+      <div class="providers" id="providers"></div>
+    </div>
+    <div class="section">
       <div class="section-title">ACCOUNT</div>
       <div class="account-user" id="username"></div>
       <button class="btn btn-danger" id="logout-btn">[ SIGN OUT ]</button>
     </div>
   </div>
 
+  <script src="../shared/config.js"></script>
+  <script src="../shared/storage-keys.js"></script>
+  <script src="../shared/api.js"></script>
+  <script src="../shared/auth.js"></script>
+  <script src="../shared/providers.js"></script>
+  <script src="../shared/migrations.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>
