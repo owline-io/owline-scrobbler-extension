@@ -123,7 +123,66 @@ function updateBadge(track) {
   chrome.action.setTitle({ title: `${track.artist} - ${track.title}` });
 }
 
+const GOOGLE_CLIENT_ID = "55887450-jpfnthtv3sp0321b1hdidq4c2maiddb0.apps.googleusercontent.com";
+
+async function googleLogin() {
+  const redirectUrl = chrome.identity.getRedirectURL();
+  const nonce = crypto.randomUUID();
+  const authUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");
+  authUrl.searchParams.set("client_id", GOOGLE_CLIENT_ID);
+  authUrl.searchParams.set("response_type", "id_token");
+  authUrl.searchParams.set("redirect_uri", redirectUrl);
+  authUrl.searchParams.set("scope", "openid email profile");
+  authUrl.searchParams.set("nonce", nonce);
+  authUrl.searchParams.set("prompt", "select_account");
+
+  const responseUrl = await chrome.identity.launchWebAuthFlow({
+    url: authUrl.toString(),
+    interactive: true,
+  });
+
+  const hash = new URL(responseUrl).hash.substring(1);
+  const params = new URLSearchParams(hash);
+  const idToken = params.get("id_token");
+  if (!idToken) throw new Error("NO ID_TOKEN FROM GOOGLE");
+
+  const oauthRes = await fetch(`${API_BASE}/auth/oauth`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ provider: "google", token: idToken }),
+  });
+
+  if (!oauthRes.ok) {
+    const err = await oauthRes.json().catch(() => ({}));
+    throw new Error(err.detail || `HTTP ${oauthRes.status}`);
+  }
+
+  const data = await oauthRes.json();
+  const accessToken = data.access_token || data.token;
+  if (!accessToken) throw new Error("NO TOKEN IN RESPONSE");
+
+  await chrome.storage.local.set({
+    owline_token: accessToken,
+    owline_refresh: data.refresh_token || null,
+  });
+
+  const meRes = await fetch(`${API_BASE}/auth/me`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  const meData = meRes.ok ? await meRes.json() : {};
+  const user = meData.data || meData;
+  await chrome.storage.local.set({ owline_user: user });
+
+  return { ok: true, user };
+}
+
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
+  if (msg.type === "GOOGLE_LOGIN") {
+    googleLogin()
+      .then((r) => sendResponse(r))
+      .catch((e) => sendResponse({ error: e.message }));
+    return true;
+  }
   if (msg.type === "SCROBBLE_READY") {
     scrobble(msg.track).then(sendResponse);
     return true;
