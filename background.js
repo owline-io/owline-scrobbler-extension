@@ -44,6 +44,24 @@ async function setFlushAttempts(n) {
   await chrome.storage.local.set({ [KEYS.FLUSH_ATTEMPTS]: n });
 }
 
+function buildPayload(track) {
+  return {
+    track: track.title,
+    artist: track.artist,
+    album: track.album || null,
+    duration: track.duration || null,
+    source: track.source,
+  };
+}
+
+async function pushLog(entry) {
+  const data = await chrome.storage.local.get(KEYS.LOGS);
+  const logs = data[KEYS.LOGS] || [];
+  logs.unshift({ at: Date.now(), ...entry });
+  if (logs.length > CONFIG.MAX_LOGS) logs.length = CONFIG.MAX_LOGS;
+  await chrome.storage.local.set({ [KEYS.LOGS]: logs });
+}
+
 async function bumpScrobbleCount(by = 1) {
   const data = await chrome.storage.local.get(KEYS.SCROBBLE_COUNT);
   const next = (data[KEYS.SCROBBLE_COUNT] || 0) + by;
@@ -82,9 +100,11 @@ async function updateBadge(track) {
 async function scrobble(track) {
   await bootReady;
 
+  const payload = buildPayload(track);
   const token = await auth.getToken();
   if (!token) {
     await enqueue(track);
+    await pushLog({ status: "queued", reason: "no_token", payload });
     return { queued: true };
   }
 
@@ -92,6 +112,7 @@ async function scrobble(track) {
   const now = Date.now();
   const last = await loadLastScrobble();
   if (key === last.key && now - last.at < DEBOUNCE_MS) {
+    await pushLog({ status: "skipped", reason: "debounce", payload });
     return { skipped: "debounce" };
   }
 
@@ -100,14 +121,18 @@ async function scrobble(track) {
 
     if (authExpired || !res || !res.ok) {
       await enqueue(track);
-      return { queued: true, reason: authExpired ? "auth_expired" : `http_${res?.status}` };
+      const reason = authExpired ? "auth_expired" : `http_${res?.status}`;
+      await pushLog({ status: "queued", reason, httpStatus: res?.status || null, payload });
+      return { queued: true, reason };
     }
 
     await saveLastScrobble(key, now);
     await updateBadge(track);
+    await pushLog({ status: "sent", httpStatus: res.status, refreshed: !!refreshed, payload });
     return refreshed ? { ok: true, refreshed: true } : { ok: true };
   } catch (err) {
     await enqueue(track);
+    await pushLog({ status: "queued", reason: err.message, payload });
     return { queued: true, reason: err.message };
   }
 }
@@ -133,12 +158,19 @@ async function flushQueue() {
   const failed = [];
   let succeeded = 0;
   for (const track of batch) {
+    const payload = buildPayload(track);
     try {
       const res = await api.postScrobble(token, track);
-      if (res.ok) succeeded++;
-      else failed.push(track);
-    } catch {
+      if (res.ok) {
+        succeeded++;
+        await pushLog({ status: "flushed", httpStatus: res.status, payload });
+      } else {
+        failed.push(track);
+        await pushLog({ status: "queued", reason: `http_${res.status}`, httpStatus: res.status, payload });
+      }
+    } catch (err) {
       failed.push(track);
+      await pushLog({ status: "queued", reason: err.message, payload });
     }
   }
 
