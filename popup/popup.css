@@ -91,7 +91,7 @@ body {
   text-transform: uppercase;
 }
 
-.now-playing-wrap {
+.now-playing {
   font-family: 'Fira Mono', monospace;
   font-size: 12px;
   line-height: 1.5;
@@ -99,7 +99,7 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
-.now-playing-wrap .artist {
+.now-playing .artist {
   color: #8a8a92;
   font-size: 10px;
 }

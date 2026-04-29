@@ -171,10 +171,18 @@ async function flushQueue() {
 
   const failed = [];
   let succeeded = 0;
+  let currentToken = token;
   for (const track of batch) {
     const payload = buildPayload(track);
     try {
-      const res = await api.postScrobble(token, track);
+      let res = await api.postScrobble(currentToken, track);
+      if (res.status === 401) {
+        const refreshed = await auth.refreshAccessToken();
+        if (refreshed) {
+          currentToken = refreshed;
+          res = await api.postScrobble(currentToken, track);
+        }
+      }
       if (res.ok) {
         succeeded++;
         const destResults = await destinations.dispatch(track);
@@ -234,7 +242,7 @@ const HANDLERS = {
     return true;
   },
   SCROBBLE_READY: (msg, sendResponse) => {
-    scrobble(msg.track).then(sendResponse);
+    scrobble(msg.track).then(sendResponse).catch((e) => sendResponse({ error: e.message }));
     return true;
   },
   NOW_PLAYING: (msg) => {
@@ -259,7 +267,7 @@ const HANDLERS = {
       if (credentials !== undefined) await destinations.setCredentials(id, credentials);
       if (enabled !== undefined) await destinations.setEnabled(id, enabled);
       sendResponse({ ok: true });
-    })();
+    })().catch((e) => sendResponse({ error: e.message }));
     return true;
   },
   CLEAR_DESTINATION: (msg, sendResponse) => {
@@ -280,6 +288,6 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
 chrome.alarms.create("flush-queue", { periodInMinutes: CONFIG.FLUSH_PERIOD_MIN });
 chrome.alarms.create("refresh-token", { periodInMinutes: CONFIG.REFRESH_PERIOD_MIN });
 chrome.alarms.onAlarm.addListener((alarm) => {
-  if (alarm.name === "flush-queue") flushQueue();
-  if (alarm.name === "refresh-token") auth.refreshAccessToken();
+  if (alarm.name === "flush-queue") flushQueue().catch(() => {});
+  if (alarm.name === "refresh-token") auth.refreshAccessToken().catch(() => {});
 });

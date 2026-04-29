@@ -46,7 +46,7 @@
   async function enabledList() {
     const all = await getAll();
     return Object.entries(all)
-      .filter(([, v]) => v.enabled && (v.credentials || CONFIG.DESTINATIONS[v]?.auth === "owline"))
+      .filter(([id, v]) => v.enabled && (v.credentials || CONFIG.DESTINATIONS[id]?.auth === "owline"))
       .map(([id]) => id);
   }
 

@@ -1,7 +1,4 @@
 function getTrackInfo() {
-  const playerEl = document.querySelector(".inline_player")
-    || document.querySelector("#trackInfoInner");
-
   const titleEl = document.querySelector(".title_link span.title")
     || document.querySelector(".trackTitle")
     || document.querySelector("[itemprop='name']");

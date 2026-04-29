@@ -25,6 +25,7 @@ async function init() {
   }
 
   pollStatus();
+  setInterval(pollStatus, CONFIG.POLL_INTERVAL_MS);
 }
 
 function setDot(state) {
@@ -75,7 +76,8 @@ function renderProviderList(container, names, settings) {
 async function renderProviders() {
   const settings = await providers.get();
   const cats = CONFIG.PROVIDER_CATEGORIES;
-  renderProviderList($("#providers-players"), cats.players, settings);
+  const allPlayers = [...(cats.players || []), ...(cats.experimental || [])];
+  renderProviderList($("#providers-players"), allPlayers, settings);
   renderProviderList($("#providers-trackers"), cats.trackers, settings);
   renderDestinations();
 }

@@ -30,6 +30,7 @@ function createScrobbler({
   maxDuration = null,
 }) {
   if (window.__owlineScrobblerActive) return;
+  if (window.__owlineIntervalId) clearInterval(window.__owlineIntervalId);
   window.__owlineScrobblerActive = true;
 
   let current = null;
@@ -83,6 +84,7 @@ function createScrobbler({
   }
 
   const intervalId = setInterval(poll, pollInterval);
+  window.__owlineIntervalId = intervalId;
   poll();
 }
 
