@@ -11,6 +11,8 @@ importScripts(
 const { CONFIG, KEYS, api, auth, destinations, migrations } = self.OWLINE;
 const { DEBOUNCE_MS, MAX_QUEUE, MAX_FLUSH_ATTEMPTS, GOOGLE_CLIENT_ID } = CONFIG;
 
+let _lastNowPlayingKey = null;
+
 const bootReady = (async () => {
   await migrations.run();
   chrome.action.setBadgeText({ text: "" });
@@ -248,8 +250,21 @@ const HANDLERS = {
   NOW_PLAYING: (msg) => {
     if (msg.track) {
       chrome.storage.local.set({ [KEYS.NOW_PLAYING]: msg.track });
+      const key = `${msg.track.artist}|${msg.track.title}`;
+      if (key !== _lastNowPlayingKey) {
+        _lastNowPlayingKey = key;
+        auth.getToken().then((token) => {
+          if (token) api.postNowPlaying(token, msg.track).catch(() => {});
+        });
+      }
     } else {
       chrome.storage.local.remove(KEYS.NOW_PLAYING);
+      if (_lastNowPlayingKey) {
+        _lastNowPlayingKey = null;
+        auth.getToken().then((token) => {
+          if (token) api.clearNowPlaying(token).catch(() => {});
+        });
+      }
     }
     return false;
   },

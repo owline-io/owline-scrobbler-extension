@@ -73,6 +73,25 @@
     });
   }
 
+  async function postNowPlaying(token, track) {
+    return call("/scrobbles/now-playing", {
+      method: "POST",
+      token,
+      body: {
+        track: track.title,
+        artist: track.artist,
+        album: track.album || null,
+        cover_url: track.cover_url || null,
+        source: track.source,
+        duration: track.duration || null,
+      },
+    });
+  }
+
+  async function clearNowPlaying(token) {
+    return call("/scrobbles/now-playing", { method: "DELETE", token });
+  }
+
   root.OWLINE.api = {
     call,
     extractToken,
@@ -83,5 +102,7 @@
     me,
     logout,
     postScrobble,
+    postNowPlaying,
+    clearNowPlaying,
   };
 })();
