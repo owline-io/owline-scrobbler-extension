@@ -3,7 +3,7 @@
   "name": "Owline Scrobbler",
   "version": "1.0.0",
   "description": "Scrobble what you listen to on Spotify, YouTube, SoundCloud and Deezer to Owline.",
-  "permissions": ["storage", "alarms"],
+  "permissions": ["storage", "alarms", "identity"],
   "host_permissions": [
     "https://api.owline.io/*"
   ],
