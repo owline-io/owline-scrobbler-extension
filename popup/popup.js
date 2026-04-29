@@ -107,7 +107,7 @@ $("#login-btn").addEventListener("click", async () => {
   }
 });
 
-const GOOGLE_CLIENT_ID = "55887450-jpfnthtv3sp0321b1hdidq4c2maiddb0.apps.googleusercontent.com";
+const GOOGLE_CLIENT_ID = "55887450-gk42vu7dalms9drbmqdblof3cl4en29m.apps.googleusercontent.com";
 
 $("#google-btn").addEventListener("click", async () => {
   const errorEl = $("#login-error");
