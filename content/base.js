@@ -1,13 +1,3 @@
-/**
- * Base scrobbler logic shared across all content scripts.
- *
- * Each platform content script calls `createScrobbler(config)` with:
- *   - source: string (spotify, youtube, soundcloud, deezer)
- *   - getTrackInfo: () => { title, artist, album?, duration? } | null
- *   - pollInterval: ms between checks (default 3000)
- *   - scrobbleAt: ms of playback before scrobble fires (default 30000)
- */
-
 function createScrobbler({ source, getTrackInfo, pollInterval = 3000, scrobbleAt = 30000 }) {
   let current = null;
   let startedAt = 0;

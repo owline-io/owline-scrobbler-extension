@@ -88,7 +88,6 @@ $("#login-btn").addEventListener("click", async () => {
       owline_refresh: data.refresh_token || null,
     });
 
-    // Fetch user profile with the new token
     const meRes = await fetch(`${API_BASE}/auth/me`, {
       headers: { Authorization: `Bearer ${token}` },
     });
