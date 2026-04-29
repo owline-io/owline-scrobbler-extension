@@ -1,8 +1,16 @@
 <p align="center">
-  <img src="cover.png" alt="Owline Scrobbler" width="100%" />
+  <img src="https://raw.githubusercontent.com/owline-io/owline-scrobbler-extension/main/cover.png" alt="Owline Scrobbler" width="100%" />
 </p>
 
 # Owline Scrobbler — Chrome Extension
+
+<p align="center">
+  <img src="https://img.shields.io/badge/manifest-v3-blue?style=flat-square" alt="Manifest V3" />
+  <img src="https://img.shields.io/badge/chrome-extension-green?style=flat-square&logo=googlechrome&logoColor=white" alt="Chrome Extension" />
+  <img src="https://img.shields.io/badge/tests-68%20passed-brightgreen?style=flat-square" alt="Tests" />
+  <img src="https://img.shields.io/badge/dependencies-zero-lightgrey?style=flat-square" alt="Zero Dependencies" />
+  <img src="https://img.shields.io/badge/players-6%20active%20·%204%20experimental-blueviolet?style=flat-square" alt="Players" />
+</p>
 
 Scrobble what you listen to on Spotify, YouTube, SoundCloud, Deezer, Tidal and Amazon Music to [Owline](https://owline.io).
 
