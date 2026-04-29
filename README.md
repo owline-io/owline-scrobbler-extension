@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/owline-io/owline-scrobbler-extension/main/cover.png" alt="Owline Scrobbler" width="100%" />
+  <img src="cover.png" alt="Owline Scrobbler" width="100%" />
 </p>
 
 # Owline Scrobbler — Chrome Extension
