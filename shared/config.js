@@ -24,6 +24,13 @@
       trackers: ["owline"],
       experimental: ["youtube_music", "apple_music", "bandcamp", "plex"],
     },
-    STORAGE_VERSION: 1,
+    DESTINATIONS: {
+      owline: { name: "Owline", default: true, auth: "owline" },
+      lastfm: { name: "Last.fm", default: false, auth: "api_key" },
+      listenbrainz: { name: "ListenBrainz", default: false, auth: "token" },
+    },
+    LASTFM_API_URL: "https://ws.audioscrobbler.com/2.0/",
+    LISTENBRAINZ_API_URL: "https://api.listenbrainz.org",
+    STORAGE_VERSION: 2,
   };
 })();
