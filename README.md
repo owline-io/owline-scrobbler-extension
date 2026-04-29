@@ -1,6 +1,6 @@
 # Owline Scrobbler — Chrome Extension
 
-Scrobble what you listen to on Spotify, YouTube, SoundCloud and Deezer to [Owline](https://owline.io).
+Scrobble what you listen to on Spotify, YouTube Music, SoundCloud, Deezer, Tidal, Amazon Music, Apple Music, Bandcamp and Plex to [Owline](https://owline.io).
 
 ## How it works
 
@@ -11,13 +11,26 @@ Scrobble what you listen to on Spotify, YouTube, SoundCloud and Deezer to [Owlin
 
 ## Supported platforms
 
-| Platform | Source | Detection |
-|----------|--------|-----------|
-| Spotify Web Player | `spotify` | Player bar DOM selectors (multiple fallbacks) |
-| YouTube | `youtube` | Video title + channel parsing |
-| YouTube Music | `youtube` | Player bar DOM selectors |
-| SoundCloud | `soundcloud` | Player bar DOM selectors |
-| Deezer | `deezer` | Player bar DOM selectors |
+### Players
+
+| Platform | Source | URL | Detection |
+|----------|--------|-----|-----------|
+| Spotify Web Player | `spotify` | `open.spotify.com` | Player bar DOM selectors (multiple fallbacks) |
+| YouTube | `youtube` | `www.youtube.com` | Video title + channel parsing |
+| YouTube Music | `youtube_music` | `music.youtube.com` | Player bar DOM selectors |
+| SoundCloud | `soundcloud` | `soundcloud.com` | Player bar DOM selectors |
+| Deezer | `deezer` | `www.deezer.com` | Player bar DOM selectors |
+| Tidal | `tidal` | `listen.tidal.com` | Player bar DOM selectors |
+| Amazon Music | `amazon_music` | `music.amazon.com` | Player bar DOM selectors |
+| Apple Music | `apple_music` | `music.apple.com` | Player bar DOM selectors |
+| Bandcamp | `bandcamp` | `*.bandcamp.com` | Player bar + audio element |
+| Plex | `plex` | `app.plex.tv` | Player bar DOM selectors |
+
+### Trackers
+
+| Tracker | Description |
+|---------|-------------|
+| Owline | Scrobbles sent to Owline API (enabled by default) |
 
 ## Features
 
@@ -27,7 +40,8 @@ Scrobble what you listen to on Spotify, YouTube, SoundCloud and Deezer to [Owlin
 - Scrobble counter (persists across restarts)
 - Now Playing display with 10s freshness TTL (clears when tab closes)
 - Pause detection per platform (no scrobble while paused)
-- Per-provider tracking toggle (enable/disable Spotify, YouTube, SoundCloud, Deezer individually)
+- Per-provider toggle (enable/disable each player and tracker individually)
+- Players and Trackers organized in separate settings sections
 - Scrobble logs (last 50 attempts) — view, expand payload, download as JSON, clear
 - Badge with scrobble count
 - Server-side logout on sign out
@@ -36,7 +50,7 @@ Scrobble what you listen to on Spotify, YouTube, SoundCloud and Deezer to [Owlin
 ## Popup tabs
 
 - **STATUS** — now playing + session counters (scrobbles / queued)
-- **SETTINGS** — provider toggles + account / sign out
+- **SETTINGS** — player toggles, tracker toggles, account / sign out
 - **LOGS** — scrobble history with expandable JSON payload, download, clear
 
 ## Install (development)
@@ -51,26 +65,48 @@ Scrobble what you listen to on Spotify, YouTube, SoundCloud and Deezer to [Owlin
 manifest.json            — MV3 manifest, CSP, content scripts per platform
 background.js            — Service worker: scrobble API, queue, auth, OAuth, logs
 shared/
-  config.js              — OWLINE.CONFIG (constants)
+  config.js              — OWLINE.CONFIG (constants, provider categories)
   storage-keys.js        — OWLINE.KEYS, SESSION_KEYS
   api.js                 — OWLINE.api (login, oauth, refresh, me, logout, postScrobble)
   auth.js                — OWLINE.auth (token storage, refresh)
-  providers.js           — OWLINE.providers (per-provider toggle)
+  providers.js           — OWLINE.providers (per-provider toggle, category-aware)
   migrations.js          — OWLINE.migrations (storage versioning)
 content/
   base.js                — Shared polling, heartbeat, provider gating
   providers/
-    spotify.js           — Spotify Web Player (3 fallback selectors + isPlaying)
-    youtube.js           — YouTube + YouTube Music + isPlaying
-    soundcloud.js        — SoundCloud + isPlaying
-    deezer.js            — Deezer + isPlaying
+    spotify.js           — Spotify Web Player
+    youtube.js           — YouTube
+    youtube-music.js     — YouTube Music
+    soundcloud.js        — SoundCloud
+    deezer.js            — Deezer
+    tidal.js             — Tidal
+    amazon-music.js      — Amazon Music
+    apple-music.js       — Apple Music
+    bandcamp.js          — Bandcamp
+    plex.js              — Plex
 popup/
   popup.html             — Tabs (Status / Settings / Logs)
   popup.css              — Styles
   popup.js               — UI logic, providers panel, log rendering
 tests/
   api.test.js            — extractToken, extractUser
+  background.test.js     — buildPayload, debounce, scrobble threshold
+  config.test.js         — PROVIDERS, PROVIDER_CATEGORIES, defaults
   duration.test.js       — parseDurationText
+  providers.test.js      — get, setEnabled, isEnabled, defaults, overrides
+  helpers/
+    dom.js               — DOM mock helper for provider tests
+  providers/
+    spotify.test.js      — Spotify provider tests
+    youtube.test.js      — YouTube provider tests
+    youtube-music.test.js — YouTube Music provider tests
+    soundcloud.test.js   — SoundCloud provider tests
+    deezer.test.js       — Deezer provider tests
+    tidal.test.js        — Tidal provider tests
+    amazon-music.test.js — Amazon Music provider tests
+    apple-music.test.js  — Apple Music provider tests
+    bandcamp.test.js     — Bandcamp provider tests
+    plex.test.js         — Plex provider tests
 icons/                   — Extension icons (16, 48, 128)
 ```
 
@@ -78,7 +114,7 @@ icons/                   — Extension icons (16, 48, 128)
 
 - Min 30s of playback OR 50% of track duration (whichever is less)
 - 5s debounce between same track (persisted, survives service worker restarts)
-- Tracks > 20min skipped (likely podcasts/mixes) — YouTube and SoundCloud only
+- Tracks > 20min skipped (likely podcasts/mixes) — YouTube, YouTube Music, SoundCloud, Bandcamp
 - Skips when player is paused (each adapter detects pause state)
 - Offline queue persisted in `chrome.storage.local` (max 200, flushes every 5min)
 - Flush stops after 3 failed attempts to avoid infinite retry
@@ -89,7 +125,7 @@ icons/                   — Extension icons (16, 48, 128)
 npm test
 ```
 
-Uses Node's built-in test runner — zero dependencies.
+68 tests — uses Node's built-in test runner, zero dependencies.
 
 ## Storage keys
 
