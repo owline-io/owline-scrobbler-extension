@@ -20,8 +20,12 @@ test("PROVIDERS array includes all expected players", () => {
   }
 });
 
-test("PROVIDER_CATEGORIES.players matches PROVIDERS", () => {
-  assert.deepEqual(CONFIG.PROVIDER_CATEGORIES.players, CONFIG.PROVIDERS);
+test("PROVIDER_CATEGORIES players + experimental matches PROVIDERS", () => {
+  const all = [
+    ...(CONFIG.PROVIDER_CATEGORIES.players || []),
+    ...(CONFIG.PROVIDER_CATEGORIES.experimental || []),
+  ];
+  assert.deepEqual(all.sort(), [...CONFIG.PROVIDERS].sort());
 });
 
 test("PROVIDER_CATEGORIES.trackers contains owline", () => {
