@@ -15,6 +15,7 @@
     PROVIDER_DISABLED_RETRY_MS: 3000,
     MIN_LISTEN_FRACTION: 0.5,
     NOW_PLAYING_TTL_MS: 10000,
+    MAX_LOGS: 50,
     FLUSH_PERIOD_MIN: 5,
     REFRESH_PERIOD_MIN: 20,
     PROVIDERS: ["spotify", "youtube", "soundcloud", "deezer"],
