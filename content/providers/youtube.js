@@ -15,8 +15,11 @@ function getTrackInfo() {
     const duration = match ? parseDurationText(match[1]) : null;
 
     const album = document.querySelector(".ytmusic-player-bar .byline a:nth-child(3)")?.textContent?.trim() || null;
+    const cover_url = document.querySelector(".ytmusic-player-bar img.image")?.src
+      || document.querySelector(".ytmusic-player-bar img")?.src
+      || null;
 
-    return { title, artist, album, duration };
+    return { title, artist, album, cover_url, duration };
   }
 
   const titleEl = document.querySelector("#info h1 yt-formatted-string")
@@ -37,7 +40,12 @@ function getTrackInfo() {
 
   const duration = parseDurationText(document.querySelector(".ytp-time-duration")?.textContent);
 
-  return { title, artist, album: null, duration };
+  const videoIdMatch = location.search.match(/[?&]v=([^&]+)/);
+  const cover_url = videoIdMatch
+    ? `https://i.ytimg.com/vi/${videoIdMatch[1]}/hqdefault.jpg`
+    : null;
+
+  return { title, artist, album: null, cover_url, duration };
 }
 
 function isPlaying() {
