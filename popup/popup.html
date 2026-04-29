@@ -76,10 +76,15 @@
       <div class="section">
         <div class="section-title">TRACKERS</div>
         <div class="providers" id="providers-trackers"></div>
-      </div>
-      <div class="section">
-        <div class="section-title">DESTINATIONS</div>
-        <div class="destinations" id="destinations-list"></div>
+        <div class="collapsible" id="destinations-wrap">
+          <button type="button" class="collapsible-toggle" id="destinations-toggle">
+            <span>DESTINATIONS</span>
+            <span class="chevron" id="destinations-chevron">▸</span>
+          </button>
+          <div class="collapsible-body hidden" id="destinations-body">
+            <div class="destinations" id="destinations-list"></div>
+          </div>
+        </div>
       </div>
       <div class="section">
         <div class="section-title">ACCOUNT</div>

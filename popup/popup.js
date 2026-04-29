@@ -375,4 +375,11 @@ $("#logout-btn").addEventListener("click", async () => {
   showLogin();
 });
 
+$("#destinations-toggle").addEventListener("click", () => {
+  const body = $("#destinations-body");
+  const chevron = $("#destinations-chevron");
+  body.classList.toggle("hidden");
+  chevron.classList.toggle("open");
+});
+
 init();
