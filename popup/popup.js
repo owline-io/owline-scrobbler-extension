@@ -3,27 +3,30 @@ const API_BASE = "https://api.owline.io/api/v1";
 const $ = (sel) => document.querySelector(sel);
 
 async function init() {
-  const { owline_token, owline_user } = await chrome.storage.local.get([
-    "owline_token",
-    "owline_user",
-  ]);
+  const stored = await chrome.storage.local.get(null);
+  console.log("STORAGE:", JSON.stringify(Object.keys(stored)));
+  console.log("HAS TOKEN:", !!stored.owline_token);
+  console.log("HAS USER:", !!stored.owline_user);
 
-  if (owline_token && owline_user) {
-    showMain(owline_user);
-  } else if (owline_token) {
+  if (stored.owline_token && stored.owline_user) {
+    showMain(stored.owline_user);
+  } else if (stored.owline_token) {
     try {
       const meRes = await fetch(`${API_BASE}/auth/me`, {
-        headers: { Authorization: `Bearer ${owline_token}` },
+        headers: { Authorization: `Bearer ${stored.owline_token}` },
       });
+      console.log("ME STATUS:", meRes.status);
       const meData = meRes.ok ? await meRes.json() : null;
       const user = meData?.data || meData;
       if (user && user.username) {
         await chrome.storage.local.set({ owline_user: user });
         showMain(user);
       } else {
+        console.log("ME RESPONSE:", JSON.stringify(meData));
         showLogin();
       }
-    } catch {
+    } catch (e) {
+      console.log("ME ERROR:", e.message);
       showLogin();
     }
   } else {
