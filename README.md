@@ -1,6 +1,6 @@
 # Owline Scrobbler — Chrome Extension
 
-Scrobble what you listen to on Spotify, YouTube Music, SoundCloud, Deezer, Tidal, Amazon Music, Apple Music, Bandcamp and Plex to [Owline](https://owline.io).
+Scrobble what you listen to on Spotify, YouTube, SoundCloud, Deezer, Tidal and Amazon Music to [Owline](https://owline.io).
 
 ## How it works
 
@@ -11,20 +11,20 @@ Scrobble what you listen to on Spotify, YouTube Music, SoundCloud, Deezer, Tidal
 
 ## Supported platforms
 
-### Players
+### Active players (visible in settings menu)
 
-| Platform | Source | URL | Detection |
-|----------|--------|-----|-----------|
-| Spotify Web Player | `spotify` | `open.spotify.com` | Player bar DOM selectors (multiple fallbacks) |
-| YouTube | `youtube` | `www.youtube.com` | Video title + channel parsing |
-| YouTube Music | `youtube_music` | `music.youtube.com` | Player bar DOM selectors |
-| SoundCloud | `soundcloud` | `soundcloud.com` | Player bar DOM selectors |
-| Deezer | `deezer` | `www.deezer.com` | Player bar DOM selectors |
-| Tidal | `tidal` | `listen.tidal.com` | Player bar DOM selectors |
-| Amazon Music | `amazon_music` | `music.amazon.com` | Player bar DOM selectors |
-| Apple Music | `apple_music` | `music.apple.com` | Player bar DOM selectors |
-| Bandcamp | `bandcamp` | `*.bandcamp.com` | Player bar + audio element |
-| Plex | `plex` | `app.plex.tv` | Player bar DOM selectors |
+| Platform | Source | URL |
+|----------|--------|-----|
+| Spotify Web Player | `spotify` | `open.spotify.com` |
+| YouTube | `youtube` | `*.youtube.com` (except `music.youtube.com`) |
+| SoundCloud | `soundcloud` | `soundcloud.com` |
+| Deezer | `deezer` | `www.deezer.com` |
+| Tidal | `tidal` | `tidal.com`, `listen.tidal.com`, `*.tidal.com` |
+| Amazon Music | `amazon_music` | `music.amazon.com` and 11 regional TLDs |
+
+### Experimental (hidden from menu, untested DOM selectors)
+
+YouTube Music, Apple Music, Bandcamp, Plex — adapters exist but selectors are educated guesses. Content scripts still load on matching sites; toggles will appear once each is validated against the live DOM.
 
 ### Trackers
 
@@ -37,13 +37,12 @@ Scrobble what you listen to on Spotify, YouTube Music, SoundCloud, Deezer, Tidal
 - Email/password and Google Sign-In authentication
 - Auto token refresh (every 20min)
 - Offline queue with periodic flush (persisted in storage, max 200 tracks)
-- Scrobble counter (persists across restarts)
 - Now Playing display with 10s freshness TTL (clears when tab closes)
 - Pause detection per platform (no scrobble while paused)
-- Per-provider toggle (enable/disable each player and tracker individually)
-- Players and Trackers organized in separate settings sections
-- Scrobble logs (last 50 attempts) — view, expand payload, download as JSON, clear
-- Badge with scrobble count
+- Cover art per scrobble (sent in payload, persisted as `tracks.image_url`)
+- Per-provider toggle in Settings tab
+- Status dot: red (logged out) → grey (idle) → green (track playing)
+- Scrobble logs (last 50 attempts) — view, expand JSON payload, download, clear
 - Server-side logout on sign out
 - Versioned storage with migration runner
 
@@ -76,14 +75,14 @@ content/
   providers/
     spotify.js           — Spotify Web Player
     youtube.js           — YouTube
-    youtube-music.js     — YouTube Music
+    youtube-music.js     — YouTube Music (experimental)
     soundcloud.js        — SoundCloud
     deezer.js            — Deezer
     tidal.js             — Tidal
     amazon-music.js      — Amazon Music
-    apple-music.js       — Apple Music
-    bandcamp.js          — Bandcamp
-    plex.js              — Plex
+    apple-music.js       — Apple Music (experimental)
+    bandcamp.js          — Bandcamp (experimental)
+    plex.js              — Plex (experimental)
 popup/
   popup.html             — Tabs (Status / Settings / Logs)
   popup.css              — Styles
@@ -94,27 +93,33 @@ tests/
   config.test.js         — PROVIDERS, PROVIDER_CATEGORIES, defaults
   duration.test.js       — parseDurationText
   providers.test.js      — get, setEnabled, isEnabled, defaults, overrides
-  helpers/
-    dom.js               — DOM mock helper for provider tests
-  providers/
-    spotify.test.js      — Spotify provider tests
-    youtube.test.js      — YouTube provider tests
-    youtube-music.test.js — YouTube Music provider tests
-    soundcloud.test.js   — SoundCloud provider tests
-    deezer.test.js       — Deezer provider tests
-    tidal.test.js        — Tidal provider tests
-    amazon-music.test.js — Amazon Music provider tests
-    apple-music.test.js  — Apple Music provider tests
-    bandcamp.test.js     — Bandcamp provider tests
-    plex.test.js         — Plex provider tests
+  helpers/dom.js         — DOM mock helper for provider tests
+  providers/             — per-adapter tests (10 files)
 icons/                   — Extension icons (16, 48, 128)
 ```
+
+## Scrobble payload
+
+Each scrobble sent to `POST /api/v1/scrobbles`:
+
+```json
+{
+  "track": "Song Title",
+  "artist": "Artist Name",
+  "album": "Album Name or null",
+  "cover_url": "https://.../cover.jpg or null",
+  "duration": 240,
+  "source": "spotify"
+}
+```
+
+`cover_url` is captured by each adapter when available (DOM image src or attribute) and persisted server-side as `tracks.image_url`. The user-stats top tracks endpoint falls back to `albums.cover_url` when track image is missing, so historical Last.fm imports still display covers.
 
 ## Scrobble rules
 
 - Min 30s of playback OR 50% of track duration (whichever is less)
 - 5s debounce between same track (persisted, survives service worker restarts)
-- Tracks > 20min skipped (likely podcasts/mixes) — YouTube, YouTube Music, SoundCloud, Bandcamp
+- Tracks > 20min skipped (likely podcasts/mixes) — YouTube, SoundCloud, Bandcamp
 - Skips when player is paused (each adapter detects pause state)
 - Offline queue persisted in `chrome.storage.local` (max 200, flushes every 5min)
 - Flush stops after 3 failed attempts to avoid infinite retry
@@ -130,3 +135,14 @@ npm test
 ## Storage keys
 
 All keys are namespaced under `owline_*` and exposed via `OWLINE.KEYS`. Provider settings (`owline_providers`) and storage version (`owline_storage_version`) survive logout; everything else is cleared on sign out.
+
+## Validating a new player adapter
+
+Adapters for experimental providers (YouTube Music, Apple Music, Bandcamp, Plex) need DOM validation. Process:
+
+1. Open the player site, play a track
+2. F12 → Console, run a snippet listing relevant `data-test`/class attributes around the player bar
+3. Adjust the adapter's `getTrackInfo`, `isPlaying`, `getPlayer` selectors to match live DOM
+4. Move the source name from `PROVIDER_CATEGORIES.experimental` to `players` in `shared/config.js`
+
+This is how Spotify, SoundCloud, Amazon Music, Deezer and Tidal were validated.
