@@ -264,8 +264,11 @@ const HANDLERS = {
       return true;
     }
     (async () => {
-      if (credentials !== undefined) await destinations.setCredentials(id, credentials);
-      if (enabled !== undefined) await destinations.setEnabled(id, enabled);
+      const all = await destinations.getAll();
+      if (!all[id]) { sendResponse({ error: "unknown_destination" }); return; }
+      if (credentials !== undefined) all[id].credentials = credentials;
+      if (enabled !== undefined) all[id].enabled = !!enabled;
+      await chrome.storage.local.set({ [KEYS.DESTINATIONS]: all });
       sendResponse({ ok: true });
     })().catch((e) => sendResponse({ error: e.message }));
     return true;

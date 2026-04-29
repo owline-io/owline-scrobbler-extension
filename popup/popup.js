@@ -137,37 +137,61 @@ async function renderDestinations() {
     const saveBtn = document.createElement("button");
     saveBtn.className = "btn btn-sm";
     saveBtn.textContent = "[ SAVE ]";
-    saveBtn.addEventListener("click", async () => {
+    saveBtn.addEventListener("click", () => {
       const creds = {};
       for (const f of fields) creds[f.key] = inputs[f.key].value.trim();
-      const empty = fields.some((f) => !creds[f.key]);
-      if (empty) return;
-      chrome.runtime.sendMessage({ type: "SET_DESTINATION", id, credentials: creds, enabled: true });
-      toggle.classList.add("on");
-      saveBtn.textContent = "SAVED";
-      setTimeout(() => { saveBtn.textContent = "[ SAVE ]"; }, 1500);
+      if (fields.some((f) => !creds[f.key])) return;
+      saveBtn.disabled = true;
+      saveBtn.textContent = "SAVING…";
+      chrome.runtime.sendMessage(
+        { type: "SET_DESTINATION", id, credentials: creds, enabled: true },
+        (res) => {
+          saveBtn.disabled = false;
+          if (chrome.runtime.lastError || res?.error) {
+            saveBtn.textContent = "ERROR";
+            setTimeout(() => { saveBtn.textContent = "[ SAVE ]"; }, 1500);
+            return;
+          }
+          toggle.classList.add("on");
+          saveBtn.textContent = "SAVED";
+          setTimeout(() => { saveBtn.textContent = "[ SAVE ]"; }, 1500);
+        }
+      );
     });
     form.appendChild(saveBtn);
 
     const disconnectBtn = document.createElement("button");
     disconnectBtn.className = "btn-ghost danger";
     disconnectBtn.textContent = "DISCONNECT";
-    disconnectBtn.addEventListener("click", async () => {
-      chrome.runtime.sendMessage({ type: "CLEAR_DESTINATION", id });
-      toggle.classList.remove("on");
-      for (const f of fields) inputs[f.key].value = "";
-      form.classList.add("hidden");
+    disconnectBtn.addEventListener("click", () => {
+      disconnectBtn.textContent = "DISCONNECTING…";
+      chrome.runtime.sendMessage({ type: "CLEAR_DESTINATION", id }, (res) => {
+        if (chrome.runtime.lastError || res?.error) {
+          disconnectBtn.textContent = "ERROR";
+          setTimeout(() => { disconnectBtn.textContent = "DISCONNECT"; }, 1500);
+          return;
+        }
+        toggle.classList.remove("on");
+        for (const f of fields) inputs[f.key].value = "";
+        form.classList.add("hidden");
+        disconnectBtn.textContent = "DISCONNECT";
+      });
     });
     form.appendChild(disconnectBtn);
 
     container.appendChild(form);
 
-    toggle.addEventListener("click", async () => {
+    toggle.addEventListener("click", () => {
       const next = !toggle.classList.contains("on");
       toggle.classList.toggle("on", next);
       form.classList.toggle("hidden", !next);
       if (!next) {
-        chrome.runtime.sendMessage({ type: "SET_DESTINATION", id, enabled: false });
+        chrome.runtime.sendMessage({ type: "SET_DESTINATION", id, enabled: false }, (res) => {
+          if (chrome.runtime.lastError || res?.error) {
+            toggle.classList.add("on");
+            form.classList.remove("hidden");
+          }
+        });
       }
     });
   }
