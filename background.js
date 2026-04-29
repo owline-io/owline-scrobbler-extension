@@ -5,6 +5,9 @@ const DEBOUNCE_MS = 5000;
 let lastScrobble = { key: "", at: 0 };
 let pendingQueue = [];
 let scrobbleCount = 0;
+chrome.storage.local.get("owline_scrobble_count", (d) => {
+  scrobbleCount = d.owline_scrobble_count || 0;
+});
 
 async function getToken() {
   const { owline_token } = await chrome.storage.local.get("owline_token");
