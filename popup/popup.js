@@ -27,18 +27,22 @@ async function init() {
   pollStatus();
 }
 
+function setDot(state) {
+  const dot = $("#status-dot");
+  dot.classList.remove("dot-green", "dot-red", "dot-idle");
+  dot.classList.add(`dot-${state}`);
+}
+
 function showLogin() {
   $("#login-section").classList.remove("hidden");
   $("#main-section").classList.add("hidden");
-  $("#status-dot").classList.add("dot-red");
-  $("#status-dot").classList.remove("dot-green");
+  setDot("red");
 }
 
 function showMain(user) {
   $("#login-section").classList.add("hidden");
   $("#main-section").classList.remove("hidden");
-  $("#status-dot").classList.add("dot-green");
-  $("#status-dot").classList.remove("dot-red");
+  setDot("idle");
   $("#username").textContent = `@${user.username || "unknown"}`;
   renderProviders();
 }
@@ -88,6 +92,7 @@ async function pollStatus() {
   const track = fresh ? raw : null;
   np.textContent = "";
   if (track && track.title) {
+    setDot("green");
     np.classList.remove("empty");
     const wrap = document.createElement("div");
     wrap.className = "now-playing";
@@ -100,6 +105,7 @@ async function pollStatus() {
     wrap.appendChild(artistDiv);
     np.appendChild(wrap);
   } else {
+    setDot("idle");
     np.classList.add("empty");
     np.textContent = "NOTHING DETECTED";
   }
