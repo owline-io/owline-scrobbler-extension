@@ -18,7 +18,11 @@
     MAX_LOGS: 50,
     FLUSH_PERIOD_MIN: 5,
     REFRESH_PERIOD_MIN: 20,
-    PROVIDERS: ["spotify", "youtube", "soundcloud", "deezer"],
+    PROVIDERS: ["spotify", "youtube", "youtube_music", "soundcloud", "deezer", "tidal", "amazon_music", "apple_music", "bandcamp", "plex"],
+    PROVIDER_CATEGORIES: {
+      players: ["spotify", "youtube", "youtube_music", "soundcloud", "deezer", "tidal", "amazon_music", "apple_music", "bandcamp", "plex"],
+      trackers: ["owline"],
+    },
     STORAGE_VERSION: 1,
   };
 })();
