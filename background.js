@@ -278,7 +278,9 @@ const HANDLERS = {
       sendResponse({ error: "unknown_destination" });
       return true;
     }
-    destinations.clearCredentials(msg.id).then(() => sendResponse({ ok: true }));
+    destinations.clearCredentials(msg.id)
+      .then(() => sendResponse({ ok: true }))
+      .catch((e) => sendResponse({ error: e.message }));
     return true;
   },
 };
