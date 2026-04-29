@@ -22,12 +22,9 @@ function getTrackInfo() {
   }
   if (!title || !artist) return null;
 
-  const durationEl = document.querySelector('[data-testid="playback-duration"]');
-  let duration = null;
-  if (durationEl) {
-    const parts = durationEl.textContent.split(":").map(Number);
-    duration = parts.length === 2 ? parts[0] * 60 + parts[1] : null;
-  }
+  const duration = parseDurationText(
+    document.querySelector('[data-testid="playback-duration"]')?.textContent
+  );
 
   const coverEl = document.querySelector('[data-testid="CoverSlotExpanded__container"] img')
     || document.querySelector('.now-playing__cover-art img');
@@ -35,15 +32,16 @@ function getTrackInfo() {
   return { title, artist, album: coverEl?.alt || null, duration };
 }
 
-function waitForPlayer() {
-  const check = () => {
-    if (getTrackInfo()) {
-      createScrobbler({ source: "spotify", getTrackInfo });
-    } else {
-      setTimeout(check, 2000);
-    }
-  };
-  check();
+function isPlaying() {
+  const btn = document.querySelector('[data-testid="control-button-playpause"]');
+  if (!btn) return false;
+  const label = (btn.getAttribute("aria-label") || "").toLowerCase();
+  return label.includes("pause");
 }
 
-waitForPlayer();
+waitForPlayer({
+  source: "spotify",
+  getTrackInfo,
+  isPlaying,
+  hasPlayer: () => !!getTrackInfo(),
+});
