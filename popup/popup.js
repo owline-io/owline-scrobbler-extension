@@ -43,12 +43,9 @@ function showMain(user) {
   renderProviders();
 }
 
-async function renderProviders() {
-  const settings = await providers.get();
-  const container = $("#providers");
+function renderProviderList(container, names, settings) {
   container.textContent = "";
-
-  for (const name of CONFIG.PROVIDERS) {
+  for (const name of names) {
     const row = document.createElement("div");
     row.className = "provider-row";
 
@@ -69,6 +66,13 @@ async function renderProviders() {
     row.appendChild(toggle);
     container.appendChild(row);
   }
+}
+
+async function renderProviders() {
+  const settings = await providers.get();
+  const cats = CONFIG.PROVIDER_CATEGORIES;
+  renderProviderList($("#providers-players"), cats.players, settings);
+  renderProviderList($("#providers-trackers"), cats.trackers, settings);
 }
 
 async function pollStatus() {
