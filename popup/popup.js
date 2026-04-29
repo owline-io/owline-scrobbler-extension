@@ -100,38 +100,25 @@ async function renderDestinations() {
     if (id === "owline") continue;
 
     const state = all[id] || { enabled: false, credentials: null };
-    const card = document.createElement("div");
-    card.className = "dest-card";
 
-    const header = document.createElement("div");
-    header.className = "dest-header";
-
-    const left = document.createElement("div");
-    left.style.cssText = "display:flex;align-items:center;gap:8px;";
-
-    const chevron = document.createElement("span");
-    chevron.className = "chevron";
-    chevron.textContent = "▸";
+    const row = document.createElement("div");
+    row.className = "provider-row";
 
     const label = document.createElement("span");
-    label.className = "dest-name";
     label.textContent = meta.name;
-
-    left.appendChild(chevron);
-    left.appendChild(label);
 
     const toggle = document.createElement("button");
     toggle.type = "button";
     toggle.className = "toggle" + (state.enabled ? " on" : "");
     toggle.setAttribute("aria-label", `Toggle ${meta.name}`);
 
-    header.appendChild(left);
-    header.appendChild(toggle);
-    card.appendChild(header);
+    row.appendChild(label);
+    row.appendChild(toggle);
+    container.appendChild(row);
 
     const fields = DEST_FIELDS[id] || [];
     const form = document.createElement("div");
-    form.className = "dest-form hidden";
+    form.className = "dest-form" + (state.enabled ? "" : " hidden");
 
     const inputs = {};
     for (const f of fields) {
@@ -167,26 +154,15 @@ async function renderDestinations() {
       toggle.classList.remove("on");
       for (const f of fields) inputs[f.key].value = "";
       form.classList.add("hidden");
-      chevron.classList.remove("open");
     });
     form.appendChild(disconnectBtn);
 
-    card.appendChild(form);
-
-    header.style.cursor = "pointer";
-    header.addEventListener("click", (e) => {
-      if (e.target === toggle || toggle.contains(e.target)) return;
-      form.classList.toggle("hidden");
-      chevron.classList.toggle("open");
-    });
+    container.appendChild(form);
 
     toggle.addEventListener("click", async () => {
       const next = !toggle.classList.contains("on");
       toggle.classList.toggle("on", next);
-      if (next) {
-        form.classList.remove("hidden");
-        chevron.classList.add("open");
-      }
+      form.classList.toggle("hidden", !next);
       if (!next) {
         chrome.runtime.sendMessage({ type: "SET_DESTINATION", id, enabled: false });
       }
