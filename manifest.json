@@ -30,7 +30,8 @@
       "run_at": "document_idle"
     },
     {
-      "matches": ["https://www.youtube.com/*"],
+      "matches": ["https://*.youtube.com/*"],
+      "exclude_matches": ["https://music.youtube.com/*"],
       "js": ["shared/config.js", "shared/storage-keys.js", "content/base.js", "content/providers/youtube.js"],
       "run_at": "document_idle"
     },
