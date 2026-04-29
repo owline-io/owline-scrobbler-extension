@@ -23,6 +23,7 @@
 
   async function clearSession() {
     await chrome.storage.local.remove(SESSION_KEYS);
+    await chrome.storage.local.remove(KEYS.DESTINATIONS);
   }
 
   async function refreshAccessToken() {

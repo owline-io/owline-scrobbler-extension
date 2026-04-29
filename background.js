@@ -4,10 +4,11 @@ importScripts(
   "shared/api.js",
   "shared/auth.js",
   "shared/providers.js",
+  "shared/destinations.js",
   "shared/migrations.js",
 );
 
-const { CONFIG, KEYS, api, auth, migrations } = self.OWLINE;
+const { CONFIG, KEYS, api, auth, destinations, migrations } = self.OWLINE;
 const { DEBOUNCE_MS, MAX_QUEUE, MAX_FLUSH_ATTEMPTS, GOOGLE_CLIENT_ID } = CONFIG;
 
 const bootReady = (async () => {
@@ -56,10 +57,20 @@ function buildPayload(track) {
   };
 }
 
+function sanitizeLogEntry(entry) {
+  const clean = { ...entry };
+  delete clean.credentials;
+  delete clean.token;
+  delete clean.api_key;
+  delete clean.api_secret;
+  delete clean.session_key;
+  return clean;
+}
+
 async function pushLog(entry) {
   const data = await chrome.storage.local.get(KEYS.LOGS);
   const logs = data[KEYS.LOGS] || [];
-  logs.unshift({ at: Date.now(), ...entry });
+  logs.unshift({ at: Date.now(), ...sanitizeLogEntry(entry) });
   if (logs.length > CONFIG.MAX_LOGS) logs.length = CONFIG.MAX_LOGS;
   await chrome.storage.local.set({ [KEYS.LOGS]: logs });
 }
@@ -128,9 +139,11 @@ async function scrobble(track) {
 
     await saveLastScrobble(key, now);
     await updateBadge(track);
-    await pushLog({ status: "sent", httpStatus: res.status, refreshed: !!refreshed, payload });
 
-    return refreshed ? { ok: true, refreshed: true } : { ok: true };
+    const destResults = await destinations.dispatch(track);
+    await pushLog({ status: "sent", httpStatus: res.status, refreshed: !!refreshed, destinations: destResults, payload });
+
+    return refreshed ? { ok: true, refreshed: true, destinations: destResults } : { ok: true, destinations: destResults };
   } catch (err) {
     await enqueue(track);
     await pushLog({ status: "queued", reason: err.message, payload });
@@ -158,13 +171,22 @@ async function flushQueue() {
 
   const failed = [];
   let succeeded = 0;
+  let currentToken = token;
   for (const track of batch) {
     const payload = buildPayload(track);
     try {
-      const res = await api.postScrobble(token, track);
+      let res = await api.postScrobble(currentToken, track);
+      if (res.status === 401) {
+        const refreshed = await auth.refreshAccessToken();
+        if (refreshed) {
+          currentToken = refreshed;
+          res = await api.postScrobble(currentToken, track);
+        }
+      }
       if (res.ok) {
         succeeded++;
-        await pushLog({ status: "flushed", httpStatus: res.status, payload });
+        const destResults = await destinations.dispatch(track);
+        await pushLog({ status: "flushed", httpStatus: res.status, destinations: destResults, payload });
       } else {
         failed.push(track);
         await pushLog({ status: "queued", reason: `http_${res.status}`, httpStatus: res.status, payload });
@@ -220,7 +242,7 @@ const HANDLERS = {
     return true;
   },
   SCROBBLE_READY: (msg, sendResponse) => {
-    scrobble(msg.track).then(sendResponse);
+    scrobble(msg.track).then(sendResponse).catch((e) => sendResponse({ error: e.message }));
     return true;
   },
   NOW_PLAYING: (msg) => {
@@ -235,6 +257,32 @@ const HANDLERS = {
     flushQueue().then(() => sendResponse({ flushed: true }));
     return true;
   },
+  SET_DESTINATION: (msg, sendResponse) => {
+    const { id, enabled, credentials } = msg;
+    if (!CONFIG.DESTINATIONS[id]) {
+      sendResponse({ error: "unknown_destination" });
+      return true;
+    }
+    (async () => {
+      const all = await destinations.getAll();
+      if (!all[id]) { sendResponse({ error: "unknown_destination" }); return; }
+      if (credentials !== undefined) all[id].credentials = credentials;
+      if (enabled !== undefined) all[id].enabled = !!enabled;
+      await chrome.storage.local.set({ [KEYS.DESTINATIONS]: all });
+      sendResponse({ ok: true });
+    })().catch((e) => sendResponse({ error: e.message }));
+    return true;
+  },
+  CLEAR_DESTINATION: (msg, sendResponse) => {
+    if (!CONFIG.DESTINATIONS[msg.id]) {
+      sendResponse({ error: "unknown_destination" });
+      return true;
+    }
+    destinations.clearCredentials(msg.id)
+      .then(() => sendResponse({ ok: true }))
+      .catch((e) => sendResponse({ error: e.message }));
+    return true;
+  },
 };
 
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
@@ -245,6 +293,6 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
 chrome.alarms.create("flush-queue", { periodInMinutes: CONFIG.FLUSH_PERIOD_MIN });
 chrome.alarms.create("refresh-token", { periodInMinutes: CONFIG.REFRESH_PERIOD_MIN });
 chrome.alarms.onAlarm.addListener((alarm) => {
-  if (alarm.name === "flush-queue") flushQueue();
-  if (alarm.name === "refresh-token") auth.refreshAccessToken();
+  if (alarm.name === "flush-queue") flushQueue().catch(() => {});
+  if (alarm.name === "refresh-token") auth.refreshAccessToken().catch(() => {});
 });

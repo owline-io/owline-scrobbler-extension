@@ -6,7 +6,9 @@
   "minimum_chrome_version": "92",
   "permissions": ["storage", "alarms", "identity"],
   "host_permissions": [
-    "https://api.owline.io/*"
+    "https://api.owline.io/*",
+    "https://ws.audioscrobbler.com/*",
+    "https://api.listenbrainz.org/*"
   ],
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'"

@@ -19,7 +19,7 @@ test("tidal: isPlaying returns false when no button", () => {
 });
 
 test("tidal: isPlaying detects pause state", () => {
-  const { ctx, dom } = loadProvider("tidal.js", (dom) => {
+  const { ctx: _ctx, dom: _dom } = loadProvider("tidal.js", (dom) => {
     dom.register('[data-test="play"]', { getAttribute: () => "play" });
     dom.register('[data-test="pause"]', { getAttribute: (k) => k === "data-test" ? "pause" : null });
   });

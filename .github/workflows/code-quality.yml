@@ -1,0 +1,61 @@
+name: Code Quality
+
+on:
+  push:
+    branches: [main, feature/*]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci --ignore-scripts
+      - run: npx eslint . --max-warnings 0
+
+  manifest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate manifest.json
+        run: node -e "JSON.parse(require('fs').readFileSync('manifest.json','utf8')); console.log('manifest.json OK')"
+      - name: Check manifest version is 3
+        run: node -e "const m=JSON.parse(require('fs').readFileSync('manifest.json','utf8')); if(m.manifest_version!==3) process.exit(1); console.log('MV3 OK')"
+      - name: Verify all content script files exist
+        run: |
+          node -e "
+            const m=JSON.parse(require('fs').readFileSync('manifest.json','utf8'));
+            const fs=require('fs');
+            let ok=true;
+            for(const cs of m.content_scripts||[]){
+              for(const f of cs.js||[]){
+                if(!fs.existsSync(f)){console.error('MISSING:',f);ok=false;}
+              }
+            }
+            if(!ok)process.exit(1);
+            console.log('All content script files exist');
+          "
+
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check for hardcoded secrets
+        run: |
+          if grep -rn --include="*.js" --include="*.json" -iE "(password|secret_key|private_key)\s*[:=]\s*['\"][^'\"]{8,}" . --exclude-dir=node_modules --exclude-dir=.git; then
+            echo "::error::Possible hardcoded secrets found"
+            exit 1
+          fi
+          echo "No hardcoded secrets found"
+      - name: Verify CSP is restrictive
+        run: |
+          node -e "
+            const m=JSON.parse(require('fs').readFileSync('manifest.json','utf8'));
+            const csp=m.content_security_policy?.extension_pages||'';
+            if(!csp.includes(\"script-src 'self'\")) {console.error('CSP missing script-src self');process.exit(1);}
+            console.log('CSP OK:',csp);
+          "

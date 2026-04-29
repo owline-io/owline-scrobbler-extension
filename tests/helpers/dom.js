@@ -2,13 +2,8 @@ const fs = require("node:fs");
 const path = require("node:path");
 const vm = require("node:vm");
 
-function createDOM(html = "") {
+function createDOM(_html = "") {
   const elements = {};
-  const listeners = {};
-
-  function parseSelector(sel) {
-    return sel;
-  }
 
   function createElement(tag, attrs = {}, text = "") {
     const el = {

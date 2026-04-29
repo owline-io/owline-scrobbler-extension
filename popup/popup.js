@@ -1,4 +1,4 @@
-const { CONFIG, KEYS, api, auth, providers, migrations } = window.OWLINE;
+const { CONFIG, KEYS, api, auth, providers, destinations, migrations } = window.OWLINE;
 const $ = (sel) => document.querySelector(sel);
 
 async function init() {
@@ -25,6 +25,7 @@ async function init() {
   }
 
   pollStatus();
+  setInterval(pollStatus, CONFIG.POLL_INTERVAL_MS);
 }
 
 function setDot(state) {
@@ -75,8 +76,125 @@ function renderProviderList(container, names, settings) {
 async function renderProviders() {
   const settings = await providers.get();
   const cats = CONFIG.PROVIDER_CATEGORIES;
-  renderProviderList($("#providers-players"), cats.players, settings);
+  const allPlayers = [...(cats.players || []), ...(cats.experimental || [])];
+  renderProviderList($("#providers-players"), allPlayers, settings);
   renderProviderList($("#providers-trackers"), cats.trackers, settings);
+  renderDestinations();
+}
+
+const DEST_FIELDS = {
+  lastfm: [
+    { key: "api_key", label: "API KEY" },
+    { key: "api_secret", label: "API SECRET" },
+    { key: "session_key", label: "SESSION KEY" },
+  ],
+  listenbrainz: [
+    { key: "token", label: "USER TOKEN" },
+  ],
+};
+
+async function renderDestinations() {
+  const container = $("#destinations-list");
+  container.textContent = "";
+  const all = await destinations.getAll();
+
+  for (const [id, meta] of Object.entries(CONFIG.DESTINATIONS)) {
+    if (id === "owline") continue;
+
+    const state = all[id] || { enabled: false, credentials: null };
+
+    const row = document.createElement("div");
+    row.className = "provider-row";
+
+    const label = document.createElement("span");
+    label.textContent = meta.name;
+
+    const toggle = document.createElement("button");
+    toggle.type = "button";
+    toggle.className = "toggle" + (state.enabled ? " on" : "");
+    toggle.setAttribute("aria-label", `Toggle ${meta.name}`);
+
+    row.appendChild(label);
+    row.appendChild(toggle);
+    container.appendChild(row);
+
+    const fields = DEST_FIELDS[id] || [];
+    const form = document.createElement("div");
+    form.className = "dest-form" + (state.enabled ? "" : " hidden");
+
+    const inputs = {};
+    for (const f of fields) {
+      const input = document.createElement("input");
+      input.type = "password";
+      input.autocomplete = "off";
+      input.placeholder = f.label;
+      input.value = state.credentials?.[f.key] || "";
+      input.dataset.field = f.key;
+      inputs[f.key] = input;
+      form.appendChild(input);
+    }
+
+    const saveBtn = document.createElement("button");
+    saveBtn.className = "btn btn-sm";
+    saveBtn.textContent = "[ SAVE ]";
+    saveBtn.addEventListener("click", () => {
+      const creds = {};
+      for (const f of fields) creds[f.key] = inputs[f.key].value.trim();
+      if (fields.some((f) => !creds[f.key])) return;
+      saveBtn.disabled = true;
+      saveBtn.textContent = "SAVING…";
+      chrome.runtime.sendMessage(
+        { type: "SET_DESTINATION", id, credentials: creds, enabled: true },
+        (res) => {
+          saveBtn.disabled = false;
+          if (chrome.runtime.lastError || res?.error) {
+            saveBtn.textContent = "ERROR";
+            setTimeout(() => { saveBtn.textContent = "[ SAVE ]"; }, 1500);
+            return;
+          }
+          toggle.classList.add("on");
+          saveBtn.textContent = "SAVED";
+          setTimeout(() => { saveBtn.textContent = "[ SAVE ]"; }, 1500);
+        }
+      );
+    });
+    form.appendChild(saveBtn);
+
+    const disconnectBtn = document.createElement("button");
+    disconnectBtn.className = "btn-ghost danger";
+    disconnectBtn.textContent = "DISCONNECT";
+    disconnectBtn.addEventListener("click", () => {
+      disconnectBtn.textContent = "DISCONNECTING…";
+      chrome.runtime.sendMessage({ type: "CLEAR_DESTINATION", id }, (res) => {
+        if (chrome.runtime.lastError || res?.error) {
+          disconnectBtn.textContent = "ERROR";
+          setTimeout(() => { disconnectBtn.textContent = "DISCONNECT"; }, 1500);
+          return;
+        }
+        toggle.classList.remove("on");
+        for (const f of fields) inputs[f.key].value = "";
+        form.classList.add("hidden");
+        disconnectBtn.textContent = "DISCONNECT";
+      });
+    });
+    form.appendChild(disconnectBtn);
+
+    container.appendChild(form);
+
+    toggle.addEventListener("click", () => {
+      const next = !toggle.classList.contains("on");
+      toggle.classList.toggle("on", next);
+      form.classList.toggle("hidden", !next);
+      if (!next) {
+        chrome.runtime.sendMessage({ type: "SET_DESTINATION", id, enabled: false }, (res) => {
+          if (chrome.runtime.lastError || res?.error) {
+            toggle.classList.add("on");
+            form.classList.remove("hidden");
+          }
+        });
+      }
+    });
+  }
 }
 
 async function pollStatus() {

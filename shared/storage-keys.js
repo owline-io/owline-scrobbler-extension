@@ -15,6 +15,7 @@
     FLUSH_ATTEMPTS: "owline_flush_attempts",
     STORAGE_VERSION: "owline_storage_version",
     LOGS: "owline_logs",
+    DESTINATIONS: "owline_destinations",
   };
 
   root.OWLINE.SESSION_KEYS = [

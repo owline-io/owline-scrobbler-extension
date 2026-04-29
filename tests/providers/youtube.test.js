@@ -14,7 +14,7 @@ test("youtube: getTrackInfo returns null when no elements", () => {
 });
 
 test("youtube: getTrackInfo parses artist - title format", () => {
-  const { ctx, dom } = loadProvider("youtube.js", (dom) => {
+  const { ctx, dom: _dom } = loadProvider("youtube.js", (dom) => {
     dom.register('#info h1 yt-formatted-string', { textContent: "Radiohead - Creep" });
     dom.register('#upload-info ytd-channel-name a', { textContent: "RadioheadVEVO" });
     dom.register('.ytp-time-duration', { textContent: "3:56" });
