@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="cover.png" alt="Owline Scrobbler" width="100%" />
+</p>
+
 # Owline Scrobbler — Chrome Extension
 
 Scrobble what you listen to on Spotify, YouTube, SoundCloud, Deezer, Tidal and Amazon Music to [Owline](https://owline.io).
