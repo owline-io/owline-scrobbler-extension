@@ -4,6 +4,7 @@ const DEBOUNCE_MS = 5000;
 
 let lastScrobble = { key: "", at: 0 };
 let pendingQueue = [];
+let scrobbleCount = 0;
 
 async function getToken() {
   const { owline_token } = await chrome.storage.local.get("owline_token");
@@ -112,12 +113,14 @@ async function flushQueue() {
 }
 
 function updateBadge(track) {
-  chrome.action.setBadgeText({ text: "1" });
-  chrome.action.setBadgeBackgroundColor({ color: "#4ade80" });
-  chrome.action.setTitle({
-    title: `${track.artist} - ${track.title}`,
+  scrobbleCount++;
+  chrome.storage.local.set({
+    owline_scrobble_count: scrobbleCount,
+    owline_queue_count: pendingQueue.length,
   });
-  setTimeout(() => chrome.action.setBadgeText({ text: "" }), 3000);
+  chrome.action.setBadgeText({ text: String(scrobbleCount) });
+  chrome.action.setBadgeBackgroundColor({ color: "#4ade80" });
+  chrome.action.setTitle({ title: `${track.artist} - ${track.title}` });
 }
 
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {

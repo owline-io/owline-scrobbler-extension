@@ -10,11 +10,27 @@ async function init() {
 
   if (owline_token && owline_user) {
     showMain(owline_user);
+  } else if (owline_token) {
+    try {
+      const meRes = await fetch(`${API_BASE}/auth/me`, {
+        headers: { Authorization: `Bearer ${owline_token}` },
+      });
+      const meData = meRes.ok ? await meRes.json() : null;
+      const user = meData?.data || meData;
+      if (user && user.username) {
+        await chrome.storage.local.set({ owline_user: user });
+        showMain(user);
+      } else {
+        showLogin();
+      }
+    } catch {
+      showLogin();
+    }
   } else {
     showLogin();
   }
 
-  pollNowPlaying();
+  pollStatus();
 }
 
 function showLogin() {
@@ -32,18 +48,26 @@ function showMain(user) {
   $("#username").textContent = `@${user.username || "unknown"}`;
 }
 
-async function pollNowPlaying() {
-  const { owline_now_playing } = await chrome.storage.local.get("owline_now_playing");
-  if (owline_now_playing && owline_now_playing.title) {
+async function pollStatus() {
+  const data = await chrome.storage.local.get([
+    "owline_now_playing",
+    "owline_scrobble_count",
+    "owline_queue_count",
+  ]);
+
+  if (data.owline_now_playing && data.owline_now_playing.title) {
     const np = $("#now-playing");
     np.classList.remove("empty");
     np.innerHTML = `
       <div class="now-playing">
-        ${escapeHtml(owline_now_playing.title)}
-        <div class="artist">${escapeHtml(owline_now_playing.artist)} &middot; ${escapeHtml(owline_now_playing.source).toUpperCase()}</div>
+        ${escapeHtml(data.owline_now_playing.title)}
+        <div class="artist">${escapeHtml(data.owline_now_playing.artist)} &middot; ${escapeHtml(data.owline_now_playing.source).toUpperCase()}</div>
       </div>
     `;
   }
+
+  $("#scrobble-count").textContent = data.owline_scrobble_count || 0;
+  $("#queue-count").textContent = data.owline_queue_count || 0;
 }
 
 function escapeHtml(str) {
