@@ -7,7 +7,18 @@ function createScrobbler({ source, getTrackInfo, pollInterval = 3000, scrobbleAt
     return t ? `${t.artist}|${t.title}` : "";
   }
 
+  function safeSend(msg) {
+    try {
+      if (!chrome.runtime?.id) { clearInterval(intervalId); return; }
+      chrome.runtime.sendMessage(msg);
+    } catch {
+      clearInterval(intervalId);
+    }
+  }
+
   function poll() {
+    if (!chrome.runtime?.id) { clearInterval(intervalId); return; }
+
     const info = getTrackInfo();
     if (!info || !info.title || !info.artist) {
       current = null;
@@ -19,10 +30,7 @@ function createScrobbler({ source, getTrackInfo, pollInterval = 3000, scrobbleAt
       current = info;
       startedAt = Date.now();
       scrobbled = false;
-      chrome.runtime.sendMessage({
-        type: "NOW_PLAYING",
-        track: { ...info, source },
-      });
+      safeSend({ type: "NOW_PLAYING", track: { ...info, source } });
     }
 
     const elapsed = Date.now() - startedAt;
@@ -32,15 +40,10 @@ function createScrobbler({ source, getTrackInfo, pollInterval = 3000, scrobbleAt
 
     if (!scrobbled && elapsed >= threshold) {
       scrobbled = true;
-      chrome.runtime.sendMessage({
-        type: "SCROBBLE_READY",
-        track: { ...info, source },
-      });
+      safeSend({ type: "SCROBBLE_READY", track: { ...info, source } });
     }
   }
 
-  setInterval(poll, pollInterval);
+  const intervalId = setInterval(poll, pollInterval);
   poll();
 }
-
-if (typeof module !== "undefined") module.exports = { createScrobbler };
