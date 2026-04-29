@@ -27,9 +27,16 @@ function getTrackInfo() {
   );
 
   const coverEl = document.querySelector('[data-testid="CoverSlotExpanded__container"] img')
+    || document.querySelector('[data-testid="now-playing-widget"] img')
     || document.querySelector('.now-playing__cover-art img');
 
-  return { title, artist, album: coverEl?.alt || null, duration };
+  return {
+    title,
+    artist,
+    album: coverEl?.alt || null,
+    cover_url: coverEl?.src || null,
+    duration,
+  };
 }
 
 function isPlaying() {
