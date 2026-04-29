@@ -1,3 +1,13 @@
+function getCoverUrl() {
+  const span = document.querySelector(".playbackSoundBadge__avatar .image__full")
+    || document.querySelector(".playbackSoundBadge span.sc-artwork");
+  if (!span) return null;
+  const bg = span.style?.backgroundImage || getComputedStyle(span).backgroundImage;
+  const match = bg && bg.match(/url\(["']?(.*?)["']?\)/);
+  if (!match) return null;
+  return match[1].replace(/-t\d+x\d+\./, "-t500x500.");
+}
+
 function getTrackInfo() {
   const titleEl = document.querySelector(".playbackSoundBadge__titleLink span:nth-child(2)")
     || document.querySelector(".playbackSoundBadge__titleLink");
@@ -13,7 +23,7 @@ function getTrackInfo() {
     document.querySelector(".playbackTimeline__duration span[aria-hidden='true']")?.textContent
   );
 
-  return { title, artist, album: null, duration };
+  return { title, artist, album: null, cover_url: getCoverUrl(), duration };
 }
 
 function isPlaying() {
