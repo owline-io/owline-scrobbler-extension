@@ -81,15 +81,21 @@ $("#login-btn").addEventListener("click", async () => {
 
     const data = await res.json();
     const token = data.access_token || data.token;
-    const user = data.user || data.data?.user;
-
     if (!token) throw new Error("NO TOKEN IN RESPONSE");
 
     await chrome.storage.local.set({
       owline_token: token,
       owline_refresh: data.refresh_token || null,
-      owline_user: user,
     });
+
+    // Fetch user profile with the new token
+    const meRes = await fetch(`${API_BASE}/auth/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const meData = meRes.ok ? await meRes.json() : {};
+    const user = meData.data || meData;
+
+    await chrome.storage.local.set({ owline_user: user });
 
     showMain(user);
     chrome.runtime.sendMessage({ type: "FLUSH_QUEUE" });
