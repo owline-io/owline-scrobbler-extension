@@ -3,99 +3,236 @@
 <head>
   <meta charset="utf-8">
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fira+Mono:wght@400;700&family=Inter:wght@400;500;700&display=swap');
+
     * { margin: 0; padding: 0; box-sizing: border-box; }
+
     body {
-      width: 300px;
-      font-family: monospace;
+      width: 320px;
+      font-family: 'Inter', system-ui, sans-serif;
       background: #0e0e12;
-      color: #f1f1f4;
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
+      color: #cfcfd6;
+      font-size: 12px;
+      line-height: 1.5;
     }
+
+    .mono { font-family: 'Fira Mono', monospace; }
+
     .header {
-      padding: 16px;
-      border-bottom: 2px solid #2a2a32;
+      padding: 14px 16px;
+      border-bottom: 2px solid #d8d8de;
       display: flex;
       align-items: center;
       gap: 10px;
+      background: #13131a;
     }
-    .header h1 { font-size: 14px; letter-spacing: 0.15em; }
-    .header .dot { width: 8px; height: 8px; border-radius: 50%; }
+    .header-logo {
+      width: 22px;
+      height: 22px;
+      border-radius: 0;
+    }
+    .header h1 {
+      font-family: 'Fira Mono', monospace;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #f1f1f4;
+    }
+    .header .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-left: auto;
+    }
     .dot-green { background: #4ade80; }
     .dot-red { background: #ef4444; }
-    .section { padding: 16px; border-bottom: 2px solid #2a2a32; }
-    .section-title { font-size: 9px; color: #6b6b75; margin-bottom: 10px; letter-spacing: 0.2em; }
-    .now-playing { color: #4ade80; font-size: 12px; line-height: 1.5; }
-    .now-playing .artist { color: #9a9aa3; font-size: 10px; }
-    .empty { color: #6b6b75; font-style: italic; }
+
+    .section {
+      padding: 14px 16px;
+      border-bottom: 2px solid #2a2a32;
+    }
+    .section-title {
+      font-family: 'Fira Mono', monospace;
+      font-size: 9px;
+      font-weight: 700;
+      color: #8a8a92;
+      margin-bottom: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+    }
+
+    .now-playing-wrap {
+      font-family: 'Fira Mono', monospace;
+      font-size: 12px;
+      line-height: 1.5;
+      color: #4ade80;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .now-playing-wrap .artist {
+      color: #8a8a92;
+      font-size: 10px;
+    }
+    .empty {
+      color: #8a8a92;
+      font-family: 'Fira Mono', monospace;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .stats {
+      display: flex;
+      gap: 24px;
+    }
+    .stat-item .value {
+      font-family: 'Fira Mono', monospace;
+      font-size: 18px;
+      font-weight: 700;
+      color: #f1f1f4;
+    }
+    .stat-item .label {
+      font-family: 'Fira Mono', monospace;
+      font-size: 9px;
+      color: #8a8a92;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+    }
+
     input {
       width: 100%;
-      background: transparent;
+      background: #13131a;
       border: 2px solid #2a2a32;
       color: #f1f1f4;
-      padding: 8px 10px;
-      font-family: monospace;
+      padding: 10px 12px;
+      font-family: 'Fira Mono', monospace;
       font-size: 11px;
       letter-spacing: 0.05em;
       margin-bottom: 8px;
+      text-transform: uppercase;
     }
-    input:focus { outline: none; border-color: #4ade80; }
-    input::placeholder { color: #6b6b75; }
-    button {
+    input:focus {
+      outline: none;
+      border-color: #d8d8de;
+    }
+    input::placeholder {
+      color: #8a8a92;
+      text-transform: uppercase;
+    }
+
+    .btn {
       width: 100%;
-      background: #f1f1f4;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 16px;
+      border: 2px solid #d8d8de;
+      background: #d8d8de;
       color: #0e0e12;
-      border: none;
-      padding: 10px;
-      font-family: monospace;
+      font-family: 'Fira Mono', monospace;
       font-size: 11px;
       font-weight: 700;
-      letter-spacing: 0.15em;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
       cursor: pointer;
+      transition: background-color 0.12s ease, color 0.12s ease;
     }
-    button:hover { background: #4ade80; }
-    button:disabled { background: #2a2a32; color: #6b6b75; cursor: default; }
-    .logout-btn {
+    .btn:hover {
+      background: #13131a;
+      color: #d8d8de;
+    }
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-google {
+      background: #f1f1f4;
+      border-color: #f1f1f4;
+      color: #1f1f24;
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+    }
+    .btn-google:hover {
+      background: #13131a;
+      color: #f1f1f4;
+      border-color: #2a2a32;
+    }
+
+    .btn-danger {
       background: transparent;
       color: #ef4444;
-      border: 2px solid #ef4444;
-      margin-top: 8px;
+      border-color: #ef4444;
     }
-    .logout-btn:hover { background: #ef4444; color: #0e0e12; }
-    .stats { display: flex; gap: 16px; }
-    .stat-item .value { font-size: 16px; font-weight: 700; color: #4ade80; }
-    .stat-item .label { font-size: 9px; color: #6b6b75; }
-    .error { color: #ef4444; font-size: 10px; margin-top: 6px; }
+    .btn-danger:hover {
+      background: #ef4444;
+      color: #0e0e12;
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 12px 0 10px;
+    }
+    .divider-line {
+      flex: 1;
+      height: 2px;
+      background: #2a2a32;
+    }
+    .divider-text {
+      font-family: 'Fira Mono', monospace;
+      font-size: 9px;
+      color: #8a8a92;
+      letter-spacing: 0.2em;
+    }
+
+    .error {
+      font-family: 'Fira Mono', monospace;
+      color: #ef4444;
+      font-size: 10px;
+      margin-top: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
     .hidden { display: none; }
+
+    .account-user {
+      font-family: 'Fira Mono', monospace;
+      font-size: 12px;
+      color: #f1f1f4;
+      letter-spacing: 0.06em;
+      margin-bottom: 10px;
+    }
   </style>
 </head>
 <body>
   <div class="header">
+    <img src="../icons/icon-48.png" class="header-logo" alt="">
+    <h1>OWLINE</h1>
     <span class="dot" id="status-dot"></span>
-    <h1>OWLINE SCROBBLER</h1>
   </div>
 
-  <!-- Login form -->
   <div id="login-section" class="section hidden">
-    <div class="section-title">SIGN IN</div>
+    <div class="section-title">SIGN IN TO SCROBBLE</div>
     <input type="email" id="email" placeholder="EMAIL" autocomplete="email">
     <input type="password" id="password" placeholder="PASSWORD" autocomplete="current-password">
-    <button id="login-btn">[ SIGN IN ]</button>
-    <div style="display:flex;align-items:center;gap:8px;margin:12px 0 8px;">
-      <div style="flex:1;height:1px;background:#2a2a32;"></div>
-      <span style="font-size:9px;color:#6b6b75;">OR</span>
-      <div style="flex:1;height:1px;background:#2a2a32;"></div>
+    <button class="btn" id="login-btn">[ SIGN IN ]</button>
+    <div class="divider">
+      <div class="divider-line"></div>
+      <span class="divider-text">OR</span>
+      <div class="divider-line"></div>
     </div>
-    <button id="google-btn" style="background:#fff;color:#333;display:flex;align-items:center;justify-content:center;gap:8px;">
-      <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+    <button class="btn btn-google" id="google-btn">
+      <svg width="14" height="14" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
       SIGN IN WITH GOOGLE
     </button>
     <div id="login-error" class="error hidden"></div>
   </div>
 
-  <!-- Logged in view -->
   <div id="main-section" class="hidden">
     <div class="section">
       <div class="section-title">NOW PLAYING</div>
@@ -116,8 +253,8 @@
     </div>
     <div class="section">
       <div class="section-title">ACCOUNT</div>
-      <div id="username" style="margin-bottom: 8px;"></div>
-      <button class="logout-btn" id="logout-btn">[ SIGN OUT ]</button>
+      <div class="account-user" id="username"></div>
+      <button class="btn btn-danger" id="logout-btn">[ SIGN OUT ]</button>
     </div>
   </div>
 
