@@ -20,9 +20,9 @@
     REFRESH_PERIOD_MIN: 20,
     PROVIDERS: ["spotify", "youtube", "youtube_music", "soundcloud", "deezer", "tidal", "amazon_music", "apple_music", "bandcamp", "plex"],
     PROVIDER_CATEGORIES: {
-      players: ["spotify", "youtube", "soundcloud", "amazon_music"],
+      players: ["spotify", "youtube", "soundcloud", "amazon_music", "deezer"],
       trackers: ["owline"],
-      experimental: ["youtube_music", "deezer", "tidal", "apple_music", "bandcamp", "plex"],
+      experimental: ["youtube_music", "tidal", "apple_music", "bandcamp", "plex"],
     },
     STORAGE_VERSION: 1,
   };
