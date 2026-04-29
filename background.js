@@ -12,6 +12,7 @@ const { DEBOUNCE_MS, MAX_QUEUE, MAX_FLUSH_ATTEMPTS, GOOGLE_CLIENT_ID } = CONFIG;
 
 const bootReady = (async () => {
   await migrations.run();
+  chrome.action.setBadgeText({ text: "" });
 })();
 
 async function loadQueue() {
@@ -92,9 +93,7 @@ async function withAuthRetry(fn) {
 }
 
 async function updateBadge(track) {
-  const count = await bumpScrobbleCount(1);
-  chrome.action.setBadgeText({ text: String(count) });
-  chrome.action.setBadgeBackgroundColor({ color: "#4ade80" });
+  await bumpScrobbleCount(1);
   chrome.action.setTitle({ title: `${track.artist} - ${track.title}` });
 }
 
