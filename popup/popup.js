@@ -1,4 +1,4 @@
-const { CONFIG, KEYS, api, auth, providers, migrations } = window.OWLINE;
+const { CONFIG, KEYS, api, auth, providers, destinations, migrations } = window.OWLINE;
 const $ = (sel) => document.querySelector(sel);
 
 async function init() {
@@ -77,6 +77,102 @@ async function renderProviders() {
   const cats = CONFIG.PROVIDER_CATEGORIES;
   renderProviderList($("#providers-players"), cats.players, settings);
   renderProviderList($("#providers-trackers"), cats.trackers, settings);
+  renderDestinations();
+}
+
+const DEST_FIELDS = {
+  lastfm: [
+    { key: "api_key", label: "API KEY" },
+    { key: "api_secret", label: "API SECRET" },
+    { key: "session_key", label: "SESSION KEY" },
+  ],
+  listenbrainz: [
+    { key: "token", label: "USER TOKEN" },
+  ],
+};
+
+async function renderDestinations() {
+  const container = $("#destinations-list");
+  container.textContent = "";
+  const all = await destinations.getAll();
+
+  for (const [id, meta] of Object.entries(CONFIG.DESTINATIONS)) {
+    if (id === "owline") continue;
+
+    const state = all[id] || { enabled: false, credentials: null };
+    const card = document.createElement("div");
+    card.className = "dest-card";
+
+    const header = document.createElement("div");
+    header.className = "dest-header";
+
+    const label = document.createElement("span");
+    label.className = "dest-name";
+    label.textContent = meta.name;
+
+    const toggle = document.createElement("button");
+    toggle.type = "button";
+    toggle.className = "toggle" + (state.enabled ? " on" : "");
+    toggle.setAttribute("aria-label", `Toggle ${meta.name}`);
+
+    header.appendChild(label);
+    header.appendChild(toggle);
+    card.appendChild(header);
+
+    const fields = DEST_FIELDS[id] || [];
+    const form = document.createElement("div");
+    form.className = "dest-form" + (state.enabled ? "" : " hidden");
+
+    const inputs = {};
+    for (const f of fields) {
+      const input = document.createElement("input");
+      input.type = "password";
+      input.placeholder = f.label;
+      input.value = state.credentials?.[f.key] || "";
+      input.dataset.field = f.key;
+      inputs[f.key] = input;
+      form.appendChild(input);
+    }
+
+    const saveBtn = document.createElement("button");
+    saveBtn.className = "btn btn-sm";
+    saveBtn.textContent = "[ SAVE ]";
+    saveBtn.addEventListener("click", async () => {
+      const creds = {};
+      for (const f of fields) creds[f.key] = inputs[f.key].value.trim();
+      const empty = fields.some((f) => !creds[f.key]);
+      if (empty) return;
+      chrome.runtime.sendMessage({ type: "SET_DESTINATION", id, credentials: creds, enabled: true });
+      toggle.classList.add("on");
+      saveBtn.textContent = "SAVED";
+      setTimeout(() => { saveBtn.textContent = "[ SAVE ]"; }, 1500);
+    });
+    form.appendChild(saveBtn);
+
+    const disconnectBtn = document.createElement("button");
+    disconnectBtn.className = "btn-ghost danger";
+    disconnectBtn.textContent = "DISCONNECT";
+    disconnectBtn.addEventListener("click", async () => {
+      chrome.runtime.sendMessage({ type: "CLEAR_DESTINATION", id });
+      toggle.classList.remove("on");
+      for (const f of fields) inputs[f.key].value = "";
+      form.classList.add("hidden");
+    });
+    form.appendChild(disconnectBtn);
+
+    card.appendChild(form);
+
+    toggle.addEventListener("click", async () => {
+      const next = !toggle.classList.contains("on");
+      toggle.classList.toggle("on", next);
+      form.classList.toggle("hidden", !next);
+      if (!next) {
+        chrome.runtime.sendMessage({ type: "SET_DESTINATION", id, enabled: false });
+      }
+    });
+
+    container.appendChild(card);
+  }
 }
 
 async function pollStatus() {
