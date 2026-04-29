@@ -8,6 +8,9 @@
   "host_permissions": [
     "https://api.owline.io/*"
   ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  },
   "icons": {
     "16": "icons/icon-16.png",
     "48": "icons/icon-48.png",
@@ -23,7 +26,7 @@
   "content_scripts": [
     {
       "matches": ["https://open.spotify.com/*"],
-      "js": ["content/base.js", "content/spotify.js"],
+      "js": ["shared/config.js", "shared/storage-keys.js", "content/base.js", "content/providers/spotify.js"],
       "run_at": "document_idle"
     },
     {
@@ -31,17 +34,17 @@
         "https://www.youtube.com/*",
         "https://music.youtube.com/*"
       ],
-      "js": ["content/base.js", "content/youtube.js"],
+      "js": ["shared/config.js", "shared/storage-keys.js", "content/base.js", "content/providers/youtube.js"],
       "run_at": "document_idle"
     },
     {
       "matches": ["https://soundcloud.com/*"],
-      "js": ["content/base.js", "content/soundcloud.js"],
+      "js": ["shared/config.js", "shared/storage-keys.js", "content/base.js", "content/providers/soundcloud.js"],
       "run_at": "document_idle"
     },
     {
       "matches": ["https://www.deezer.com/*"],
-      "js": ["content/base.js", "content/deezer.js"],
+      "js": ["shared/config.js", "shared/storage-keys.js", "content/base.js", "content/providers/deezer.js"],
       "run_at": "document_idle"
     }
   ]
