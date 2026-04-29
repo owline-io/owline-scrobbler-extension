@@ -49,6 +49,7 @@ function buildPayload(track) {
     track: track.title,
     artist: track.artist,
     album: track.album || null,
+    cover_url: track.cover_url || null,
     duration: track.duration || null,
     source: track.source,
   };
