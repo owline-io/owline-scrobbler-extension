@@ -3,3 +3,5 @@
 *.crx
 *.zip
 node_modules/
+.temp/
+build/
