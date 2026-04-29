@@ -1,12 +1,16 @@
 const API_BASE = "https://api.owline.io/api/v1";
-const SCROBBLE_THRESHOLD_MS = 30000;
 const DEBOUNCE_MS = 5000;
+const MAX_QUEUE = 200;
+const MAX_FLUSH_ATTEMPTS = 3;
 
 let lastScrobble = { key: "", at: 0 };
 let pendingQueue = [];
 let scrobbleCount = 0;
-chrome.storage.local.get("owline_scrobble_count", (d) => {
+let flushAttempts = 0;
+
+chrome.storage.local.get(["owline_scrobble_count", "owline_pending_queue"], (d) => {
   scrobbleCount = d.owline_scrobble_count || 0;
+  pendingQueue = d.owline_pending_queue || [];
 });
 
 async function getToken() {
@@ -38,10 +42,38 @@ async function refreshToken() {
   }
 }
 
+function buildScrobbleBody(track) {
+  return JSON.stringify({
+    track: track.title,
+    artist: track.artist,
+    album: track.album || null,
+    duration: track.duration || null,
+    source: track.source,
+  });
+}
+
+async function postScrobble(token, track) {
+  return fetch(`${API_BASE}/scrobbles`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: buildScrobbleBody(track),
+  });
+}
+
+function enqueue(track) {
+  if (pendingQueue.length < MAX_QUEUE) {
+    pendingQueue.push(track);
+    chrome.storage.local.set({ owline_pending_queue: pendingQueue });
+  }
+}
+
 async function scrobble(track) {
   const token = await getToken();
   if (!token) {
-    pendingQueue.push(track);
+    enqueue(track);
     return { queued: true };
   }
 
@@ -52,45 +84,19 @@ async function scrobble(track) {
   }
 
   try {
-    const res = await fetch(`${API_BASE}/scrobbles`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        track: track.title,
-        artist: track.artist,
-        album: track.album || null,
-        duration: track.duration || null,
-        source: track.source,
-      }),
-    });
+    let res = await postScrobble(token, track);
 
     if (res.status === 401) {
       const newToken = await refreshToken();
       if (newToken) {
-        const retry = await fetch(`${API_BASE}/scrobbles`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${newToken}`,
-          },
-          body: JSON.stringify({
-            track: track.title,
-            artist: track.artist,
-            album: track.album || null,
-            duration: track.duration || null,
-            source: track.source,
-          }),
-        });
-        if (retry.ok) {
+        res = await postScrobble(newToken, track);
+        if (res.ok) {
           lastScrobble = { key, at: now };
           updateBadge(track);
           return { ok: true, refreshed: true };
         }
       }
-      pendingQueue.push(track);
+      enqueue(track);
       return { queued: true, reason: "auth_expired" };
     }
 
@@ -98,7 +104,7 @@ async function scrobble(track) {
     updateBadge(track);
     return { ok: true };
   } catch (err) {
-    pendingQueue.push(track);
+    enqueue(track);
     return { queued: true, reason: err.message };
   }
 }
@@ -107,12 +113,41 @@ async function flushQueue() {
   const token = await getToken();
   if (!token || pendingQueue.length === 0) return;
 
+  flushAttempts++;
+  if (flushAttempts > MAX_FLUSH_ATTEMPTS) {
+    flushAttempts = 0;
+    return;
+  }
+
   const batch = [...pendingQueue];
   pendingQueue = [];
+  chrome.storage.local.set({ owline_pending_queue: [] });
 
+  const failed = [];
   for (const track of batch) {
-    await scrobble(track);
+    try {
+      const res = await postScrobble(token, track);
+      if (res.ok) {
+        scrobbleCount++;
+      } else {
+        failed.push(track);
+      }
+    } catch {
+      failed.push(track);
+    }
   }
+
+  if (failed.length > 0) {
+    pendingQueue = failed;
+    chrome.storage.local.set({ owline_pending_queue: failed });
+  } else {
+    flushAttempts = 0;
+  }
+
+  chrome.storage.local.set({
+    owline_scrobble_count: scrobbleCount,
+    owline_queue_count: pendingQueue.length,
+  });
 }
 
 function updateBadge(track) {

@@ -55,22 +55,21 @@ async function pollStatus() {
   if (data.owline_now_playing && data.owline_now_playing.title) {
     const np = $("#now-playing");
     np.classList.remove("empty");
-    np.innerHTML = `
-      <div class="now-playing">
-        ${escapeHtml(data.owline_now_playing.title)}
-        <div class="artist">${escapeHtml(data.owline_now_playing.artist)} &middot; ${escapeHtml(data.owline_now_playing.source).toUpperCase()}</div>
-      </div>
-    `;
+    np.textContent = "";
+    const wrap = document.createElement("div");
+    wrap.className = "now-playing";
+    const titleSpan = document.createElement("span");
+    titleSpan.textContent = data.owline_now_playing.title;
+    const artistDiv = document.createElement("div");
+    artistDiv.className = "artist";
+    artistDiv.textContent = `${data.owline_now_playing.artist} \u00B7 ${(data.owline_now_playing.source || "").toUpperCase()}`;
+    wrap.appendChild(titleSpan);
+    wrap.appendChild(artistDiv);
+    np.appendChild(wrap);
   }
 
   $("#scrobble-count").textContent = data.owline_scrobble_count || 0;
   $("#queue-count").textContent = data.owline_queue_count || 0;
-}
-
-function escapeHtml(str) {
-  const div = document.createElement("div");
-  div.textContent = str || "";
-  return div.innerHTML;
 }
 
 $("#login-btn").addEventListener("click", async () => {
@@ -147,11 +146,21 @@ $("#google-btn").addEventListener("click", async () => {
 });
 
 $("#logout-btn").addEventListener("click", async () => {
+  const token = await chrome.storage.local.get("owline_token");
+  if (token.owline_token) {
+    fetch(`${API_BASE}/auth/logout`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token.owline_token}` },
+    }).catch(() => {});
+  }
   await chrome.storage.local.remove([
     "owline_token",
     "owline_refresh",
     "owline_user",
     "owline_now_playing",
+    "owline_scrobble_count",
+    "owline_queue_count",
+    "owline_pending_queue",
   ]);
   showLogin();
 });

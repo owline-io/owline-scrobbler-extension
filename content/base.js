@@ -1,4 +1,7 @@
 function createScrobbler({ source, getTrackInfo, pollInterval = 3000, scrobbleAt = 30000 }) {
+  if (window.__owlineScrobblerActive) return;
+  window.__owlineScrobblerActive = true;
+
   let current = null;
   let startedAt = 0;
   let scrobbled = false;
@@ -27,7 +30,7 @@ function createScrobbler({ source, getTrackInfo, pollInterval = 3000, scrobbleAt
 
       const elapsed = Date.now() - startedAt;
       const threshold = info.duration
-        ? Math.min(scrobbleAt, info.duration * 500)
+        ? Math.min(scrobbleAt, info.duration * 1000 * 0.5)
         : scrobbleAt;
 
       if (!scrobbled && elapsed >= threshold) {
@@ -36,6 +39,7 @@ function createScrobbler({ source, getTrackInfo, pollInterval = 3000, scrobbleAt
       }
     } catch {
       clearInterval(intervalId);
+      window.__owlineScrobblerActive = false;
     }
   }
 

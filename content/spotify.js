@@ -1,13 +1,25 @@
 function getTrackInfo() {
-  const titleEl = document.querySelector('[data-testid="context-item-info-title"]')
-    || document.querySelector('[data-testid="now-playing-widget"] a[data-testid]');
-  const artistEl = document.querySelector('[data-testid="context-item-info-artist"]')
-    || document.querySelector('[data-testid="context-item-link"]');
+  const selectors = [
+    () => ({
+      title: document.querySelector('[data-testid="context-item-info-title"]')?.textContent?.trim(),
+      artist: document.querySelector('[data-testid="context-item-info-artist"]')?.textContent?.trim(),
+    }),
+    () => ({
+      title: document.querySelector('[data-testid="now-playing-widget"] a[data-testid]')?.textContent?.trim(),
+      artist: document.querySelector('[data-testid="context-item-link"]')?.textContent?.trim(),
+    }),
+    () => ({
+      title: document.querySelector('.Root__now-playing-bar [dir="auto"] a')?.textContent?.trim(),
+      artist: document.querySelector('.Root__now-playing-bar [dir="auto"] span a')?.textContent?.trim(),
+    }),
+  ];
 
-  if (!titleEl || !artistEl) return null;
-
-  const title = titleEl.textContent?.trim();
-  const artist = artistEl.textContent?.trim();
+  let title = null;
+  let artist = null;
+  for (const sel of selectors) {
+    const r = sel();
+    if (r.title && r.artist) { title = r.title; artist = r.artist; break; }
+  }
   if (!title || !artist) return null;
 
   const durationEl = document.querySelector('[data-testid="playback-duration"]');
@@ -19,15 +31,13 @@ function getTrackInfo() {
 
   const coverEl = document.querySelector('[data-testid="CoverSlotExpanded__container"] img')
     || document.querySelector('.now-playing__cover-art img');
-  const album = coverEl?.alt || null;
 
-  return { title, artist, album, duration };
+  return { title, artist, album: coverEl?.alt || null, duration };
 }
 
 function waitForPlayer() {
   const check = () => {
-    if (document.querySelector('[data-testid="context-item-info-title"]')
-      || document.querySelector('[data-testid="now-playing-widget"]')) {
+    if (getTrackInfo()) {
       createScrobbler({ source: "spotify", getTrackInfo });
     } else {
       setTimeout(check, 2000);
