@@ -1,0 +1,47 @@
+{
+  "manifest_version": 3,
+  "name": "Owline Scrobbler",
+  "version": "1.0.0",
+  "description": "Scrobble what you listen to on Spotify, YouTube, SoundCloud and Deezer to Owline.",
+  "permissions": ["storage"],
+  "host_permissions": [
+    "https://api.owline.io/*"
+  ],
+  "icons": {
+    "16": "icons/icon-16.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_icon": "icons/icon-48.png"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://open.spotify.com/*"],
+      "js": ["content/base.js", "content/spotify.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://www.youtube.com/*",
+        "https://music.youtube.com/*"
+      ],
+      "js": ["content/base.js", "content/youtube.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://soundcloud.com/*"],
+      "js": ["content/base.js", "content/soundcloud.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://www.deezer.com/*"],
+      "js": ["content/base.js", "content/deezer.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 300px;
+      font-family: monospace;
+      background: #0e0e12;
+      color: #f1f1f4;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .header {
+      padding: 16px;
+      border-bottom: 2px solid #2a2a32;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .header h1 { font-size: 14px; letter-spacing: 0.15em; }
+    .header .dot { width: 8px; height: 8px; border-radius: 50%; }
+    .dot-green { background: #4ade80; }
+    .dot-red { background: #ef4444; }
+    .section { padding: 16px; border-bottom: 2px solid #2a2a32; }
+    .section-title { font-size: 9px; color: #6b6b75; margin-bottom: 10px; letter-spacing: 0.2em; }
+    .now-playing { color: #4ade80; font-size: 12px; line-height: 1.5; }
+    .now-playing .artist { color: #9a9aa3; font-size: 10px; }
+    .empty { color: #6b6b75; font-style: italic; }
+    input {
+      width: 100%;
+      background: transparent;
+      border: 2px solid #2a2a32;
+      color: #f1f1f4;
+      padding: 8px 10px;
+      font-family: monospace;
+      font-size: 11px;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+    }
+    input:focus { outline: none; border-color: #4ade80; }
+    input::placeholder { color: #6b6b75; }
+    button {
+      width: 100%;
+      background: #f1f1f4;
+      color: #0e0e12;
+      border: none;
+      padding: 10px;
+      font-family: monospace;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+    button:hover { background: #4ade80; }
+    button:disabled { background: #2a2a32; color: #6b6b75; cursor: default; }
+    .logout-btn {
+      background: transparent;
+      color: #ef4444;
+      border: 2px solid #ef4444;
+      margin-top: 8px;
+    }
+    .logout-btn:hover { background: #ef4444; color: #0e0e12; }
+    .stats { display: flex; gap: 16px; }
+    .stat-item .value { font-size: 16px; font-weight: 700; color: #4ade80; }
+    .stat-item .label { font-size: 9px; color: #6b6b75; }
+    .error { color: #ef4444; font-size: 10px; margin-top: 6px; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <span class="dot" id="status-dot"></span>
+    <h1>OWLINE SCROBBLER</h1>
+  </div>
+
+  <!-- Login form -->
+  <div id="login-section" class="section hidden">
+    <div class="section-title">SIGN IN</div>
+    <input type="email" id="email" placeholder="EMAIL" autocomplete="email">
+    <input type="password" id="password" placeholder="PASSWORD" autocomplete="current-password">
+    <button id="login-btn">[ SIGN IN ]</button>
+    <div id="login-error" class="error hidden"></div>
+  </div>
+
+  <!-- Logged in view -->
+  <div id="main-section" class="hidden">
+    <div class="section">
+      <div class="section-title">NOW PLAYING</div>
+      <div id="now-playing" class="empty">NOTHING DETECTED</div>
+    </div>
+    <div class="section">
+      <div class="section-title">SESSION</div>
+      <div class="stats">
+        <div class="stat-item">
+          <div class="value" id="scrobble-count">0</div>
+          <div class="label">SCROBBLES</div>
+        </div>
+        <div class="stat-item">
+          <div class="value" id="queue-count">0</div>
+          <div class="label">QUEUED</div>
+        </div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">ACCOUNT</div>
+      <div id="username" style="margin-bottom: 8px;"></div>
+      <button class="logout-btn" id="logout-btn">[ SIGN OUT ]</button>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
