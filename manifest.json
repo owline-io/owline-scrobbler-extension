@@ -30,11 +30,13 @@
       "run_at": "document_idle"
     },
     {
-      "matches": [
-        "https://www.youtube.com/*",
-        "https://music.youtube.com/*"
-      ],
+      "matches": ["https://www.youtube.com/*"],
       "js": ["shared/config.js", "shared/storage-keys.js", "content/base.js", "content/providers/youtube.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://music.youtube.com/*"],
+      "js": ["shared/config.js", "shared/storage-keys.js", "content/base.js", "content/providers/youtube-music.js"],
       "run_at": "document_idle"
     },
     {
@@ -45,6 +47,34 @@
     {
       "matches": ["https://www.deezer.com/*"],
       "js": ["shared/config.js", "shared/storage-keys.js", "content/base.js", "content/providers/deezer.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://listen.tidal.com/*"],
+      "js": ["shared/config.js", "shared/storage-keys.js", "content/base.js", "content/providers/tidal.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://music.amazon.com/*"],
+      "js": ["shared/config.js", "shared/storage-keys.js", "content/base.js", "content/providers/amazon-music.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://music.apple.com/*"],
+      "js": ["shared/config.js", "shared/storage-keys.js", "content/base.js", "content/providers/apple-music.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://*.bandcamp.com/*",
+        "https://bandcamp.com/*"
+      ],
+      "js": ["shared/config.js", "shared/storage-keys.js", "content/base.js", "content/providers/bandcamp.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://app.plex.tv/*"],
+      "js": ["shared/config.js", "shared/storage-keys.js", "content/base.js", "content/providers/plex.js"],
       "run_at": "document_idle"
     }
   ]
