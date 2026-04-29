@@ -1,11 +1,20 @@
 function getCoverUrl() {
-  const span = document.querySelector(".playbackSoundBadge__avatar .image__full")
-    || document.querySelector(".playbackSoundBadge span.sc-artwork");
-  if (!span) return null;
-  const bg = span.style?.backgroundImage || getComputedStyle(span).backgroundImage;
-  const match = bg && bg.match(/url\(["']?(.*?)["']?\)/);
-  if (!match) return null;
-  return match[1].replace(/-t\d+x\d+\./, "-t500x500.");
+  const candidates = [
+    ".playbackSoundBadge__avatar .sc-artwork",
+    ".playbackSoundBadge__avatar span[style*='background-image']",
+    ".playbackSoundBadge .sc-artwork",
+    ".playbackSoundBadge span[style*='background-image']",
+  ];
+  for (const sel of candidates) {
+    const el = document.querySelector(sel);
+    if (!el) continue;
+    const bg = el.style?.backgroundImage || getComputedStyle(el).backgroundImage;
+    const match = bg && bg.match(/url\(["']?(.*?)["']?\)/);
+    if (match && match[1]) {
+      return match[1].replace(/-t\d+x\d+\./, "-t500x500.");
+    }
+  }
+  return null;
 }
 
 function getTrackInfo() {
