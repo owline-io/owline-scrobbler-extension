@@ -4,9 +4,6 @@ const $ = (sel) => document.querySelector(sel);
 
 async function init() {
   const stored = await chrome.storage.local.get(null);
-  console.log("STORAGE:", JSON.stringify(Object.keys(stored)));
-  console.log("HAS TOKEN:", !!stored.owline_token);
-  console.log("HAS USER:", !!stored.owline_user);
 
   if (stored.owline_token && stored.owline_user) {
     showMain(stored.owline_user);
@@ -15,18 +12,15 @@ async function init() {
       const meRes = await fetch(`${API_BASE}/auth/me`, {
         headers: { Authorization: `Bearer ${stored.owline_token}` },
       });
-      console.log("ME STATUS:", meRes.status);
       const meData = meRes.ok ? await meRes.json() : null;
       const user = meData?.data || meData;
       if (user && user.username) {
         await chrome.storage.local.set({ owline_user: user });
         showMain(user);
       } else {
-        console.log("ME RESPONSE:", JSON.stringify(meData));
         showLogin();
       }
-    } catch (e) {
-      console.log("ME ERROR:", e.message);
+    } catch {
       showLogin();
     }
   } else {
@@ -162,10 +156,10 @@ $("#google-btn").addEventListener("click", async () => {
     const idToken = params.get("id_token");
     if (!idToken) throw new Error("NO ID_TOKEN FROM GOOGLE");
 
-    const oauthRes = await fetch(`${API_BASE}/auth/oauth/google`, {
+    const oauthRes = await fetch(`${API_BASE}/auth/oauth`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ token: idToken }),
+      body: JSON.stringify({ provider: "google", token: idToken }),
     });
 
     if (!oauthRes.ok) {
