@@ -14,7 +14,7 @@ test("spotify: getTrackInfo returns null when no elements", () => {
 });
 
 test("spotify: getTrackInfo returns track when elements exist", () => {
-  const { ctx, dom } = loadProvider("spotify.js", (dom) => {
+  const { ctx, dom: _dom } = loadProvider("spotify.js", (dom) => {
     dom.register('[data-testid="context-item-info-title"]', { textContent: "Creep" });
     dom.register('[data-testid="context-item-info-artist"]', { textContent: "Radiohead" });
     dom.register('[data-testid="playback-duration"]', { textContent: "3:56" });
@@ -34,7 +34,7 @@ test("spotify: isPlaying returns false when no button", () => {
 });
 
 test("spotify: isPlaying detects pause state", () => {
-  const { ctx, dom } = loadProvider("spotify.js", (dom) => {
+  const { ctx, dom: _dom } = loadProvider("spotify.js", (dom) => {
     dom.register('[data-testid="control-button-playpause"]', {
       getAttribute: (k) => k === "aria-label" ? "Pause" : null,
     });

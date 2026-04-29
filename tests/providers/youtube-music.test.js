@@ -14,7 +14,7 @@ test("youtube-music: getTrackInfo returns null when no elements", () => {
 });
 
 test("youtube-music: getTrackInfo returns track when elements exist", () => {
-  const { ctx, dom } = loadProvider("youtube-music.js", (dom) => {
+  const { ctx, dom: _dom } = loadProvider("youtube-music.js", (dom) => {
     dom.register('.ytmusic-player-bar .title', { textContent: "Starburster" });
     dom.register('.ytmusic-player-bar .byline a', { textContent: "Fontaines D.C." });
     dom.register('.ytmusic-player-bar .time-info', { textContent: "1:23 / 3:45" });
