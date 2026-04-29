@@ -167,8 +167,6 @@ async function renderDestinations() {
         chrome.runtime.sendMessage({ type: "SET_DESTINATION", id, enabled: false });
       }
     });
-
-    container.appendChild(card);
   }
 }
 
