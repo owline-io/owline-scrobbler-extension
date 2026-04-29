@@ -14,6 +14,7 @@
     LAST_SCROBBLE: "owline_last_scrobble",
     FLUSH_ATTEMPTS: "owline_flush_attempts",
     STORAGE_VERSION: "owline_storage_version",
+    LOGS: "owline_logs",
   };
 
   root.OWLINE.SESSION_KEYS = [
@@ -26,5 +27,6 @@
     root.OWLINE.KEYS.PENDING_QUEUE,
     root.OWLINE.KEYS.LAST_SCROBBLE,
     root.OWLINE.KEYS.FLUSH_ATTEMPTS,
+    root.OWLINE.KEYS.LOGS,
   ];
 })();
