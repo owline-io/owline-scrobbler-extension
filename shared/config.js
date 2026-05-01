@@ -20,9 +20,9 @@
     REFRESH_PERIOD_MIN: 20,
     PROVIDERS: ["spotify", "youtube", "youtube_music", "soundcloud", "deezer", "tidal", "amazon_music", "apple_music", "bandcamp", "plex"],
     PROVIDER_CATEGORIES: {
-      players: ["spotify", "youtube", "soundcloud", "amazon_music", "deezer", "tidal"],
+      players: ["spotify", "youtube", "youtube_music", "soundcloud", "amazon_music", "deezer", "tidal", "bandcamp"],
       trackers: ["owline"],
-      experimental: ["youtube_music", "apple_music", "bandcamp", "plex"],
+      experimental: ["apple_music", "plex"],
     },
     DESTINATIONS: {
       owline: { name: "Owline", default: true, auth: "owline" },

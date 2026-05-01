@@ -20,10 +20,8 @@ function getTrackInfo() {
 }
 
 function isPlaying() {
-  const btn = document.querySelector("#play-pause-button");
-  if (!btn) return false;
-  const label = (btn.getAttribute("aria-label") || btn.getAttribute("title") || "").toLowerCase();
-  return label.includes("pause");
+  const v = document.querySelector("video");
+  return !!v && !v.paused && !v.ended && v.currentTime > 0;
 }
 
 waitForPlayer({

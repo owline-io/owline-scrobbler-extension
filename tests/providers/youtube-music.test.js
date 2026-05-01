@@ -26,8 +26,22 @@ test("youtube-music: getTrackInfo returns track when elements exist", () => {
   assert.equal(info.duration, 225);
 });
 
-test("youtube-music: isPlaying returns false when no button", () => {
+test("youtube-music: isPlaying returns false when no video", () => {
   const { ctx } = loadProvider("youtube-music.js");
+  assert.equal(ctx.isPlaying(), false);
+});
+
+test("youtube-music: isPlaying true when video playing", () => {
+  const { ctx } = loadProvider("youtube-music.js", (dom) => {
+    dom.register("video", { paused: false, ended: false, currentTime: 5 });
+  });
+  assert.equal(ctx.isPlaying(), true);
+});
+
+test("youtube-music: isPlaying false when paused", () => {
+  const { ctx } = loadProvider("youtube-music.js", (dom) => {
+    dom.register("video", { paused: true, ended: false, currentTime: 5 });
+  });
   assert.equal(ctx.isPlaying(), false);
 });
 

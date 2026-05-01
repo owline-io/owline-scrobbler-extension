@@ -31,18 +31,18 @@ Scrobble what you listen to on Spotify, YouTube, SoundCloud, Deezer, Tidal and A
 |----------|--------|-----|
 | Spotify Web Player | `spotify` | `open.spotify.com` |
 | YouTube | `youtube` | `www.youtube.com` |
+| YouTube Music | `youtube_music` | `music.youtube.com` |
 | SoundCloud | `soundcloud` | `soundcloud.com` |
 | Deezer | `deezer` | `www.deezer.com` |
 | Tidal | `tidal` | `listen.tidal.com` |
 | Amazon Music | `amazon_music` | `music.amazon.com` + regional TLDs |
+| Bandcamp | `bandcamp` | `*.bandcamp.com` |
 
 ### Experimental
 
 | Platform | Source | URL |
 |----------|--------|-----|
-| YouTube Music | `youtube_music` | `music.youtube.com` |
 | Apple Music | `apple_music` | `music.apple.com` |
-| Bandcamp | `bandcamp` | `*.bandcamp.com` |
 | Plex | `plex` | `app.plex.tv` |
 
 Experimental adapters load on matching sites but selectors are untested. See [Validating a new adapter](#validating-a-new-player-adapter).
@@ -191,7 +191,7 @@ All keys are namespaced under `owline_*` and exposed via `OWLINE.KEYS`. Provider
 
 ## Validating a new player adapter
 
-Experimental adapters (YouTube Music, Apple Music, Bandcamp, Plex) need DOM validation:
+Experimental adapters (Apple Music, Plex) need DOM validation:
 
 1. Open the player site, play a track
 2. F12 → Console, inspect the player bar DOM selectors
