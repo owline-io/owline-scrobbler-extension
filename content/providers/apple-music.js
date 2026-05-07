@@ -34,11 +34,15 @@ function getTrackInfo() {
 }
 
 function isPlaying() {
+  const audio = document.querySelector("audio, video");
+  if (audio && !audio.paused && !audio.ended && audio.currentTime > 0) return true;
   const btn = document.querySelector('[class*="playback-play"]')
     || document.querySelector("amp-playback-controls-play-pause");
   if (!btn) return false;
   const label = (btn.getAttribute("aria-label") || btn.getAttribute("aria-checked") || "").toLowerCase();
-  return label.includes("pause") || label === "true";
+  if (label === "true") return true;
+  const pauseTokens = ["pause", "pausar", "pausa", "anhalten", "pauzeren", "一時停止"];
+  return pauseTokens.some((t) => label.includes(t));
 }
 
 waitForPlayer({
