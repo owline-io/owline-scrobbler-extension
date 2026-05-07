@@ -94,7 +94,6 @@ function loadProvider(providerFile, domSetup) {
     isProviderEnabledSync: () => {},
     createScrobbler: () => {},
     anyMediaPlaying: () => {
-      // Mirror base.js helper for tests.
       const els = (ctx.document.querySelectorAll && ctx.document.querySelectorAll("audio, video")) || [];
       for (const el of els) {
         if (el && !el.paused && !el.ended && (el.currentTime || 0) > 0 && (el.readyState == null || el.readyState > 2)) {
