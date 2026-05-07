@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Owline Scrobbler",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Scrobble what you listen to on Spotify, YouTube, SoundCloud and Deezer to Owline.",
   "minimum_chrome_version": "92",
   "permissions": [
