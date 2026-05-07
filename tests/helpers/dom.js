@@ -4,6 +4,7 @@ const vm = require("node:vm");
 
 function createDOM(_html = "") {
   const elements = {};
+  let mediaList = [];
 
   function createElement(tag, attrs = {}, text = "") {
     const el = {
@@ -39,7 +40,17 @@ function createDOM(_html = "") {
     return elements[sel] || null;
   }
 
-  return { createElement, register, querySelector };
+  function querySelectorAll(sel) {
+    if (sel === "audio, video" || sel === "audio,video") {
+      return mediaList;
+    }
+    const single = elements[sel];
+    return single ? [single] : [];
+  }
+
+  function setMediaList(list) { mediaList = list; }
+
+  return { createElement, register, querySelector, querySelectorAll, setMediaList };
 }
 
 function loadProvider(providerFile, domSetup) {
@@ -54,6 +65,7 @@ function loadProvider(providerFile, domSetup) {
     },
     document: {
       querySelector: (sel) => dom.querySelector(sel),
+      querySelectorAll: (sel) => dom.querySelectorAll(sel),
     },
     location: { hostname: "", search: "", pathname: "" },
     chrome: {
@@ -81,6 +93,25 @@ function loadProvider(providerFile, domSetup) {
     __owlineProviderListeners: new Map(),
     isProviderEnabledSync: () => {},
     createScrobbler: () => {},
+    anyMediaPlaying: () => {
+      // Mirror base.js helper for tests.
+      const els = (ctx.document.querySelectorAll && ctx.document.querySelectorAll("audio, video")) || [];
+      for (const el of els) {
+        if (el && !el.paused && !el.ended && (el.currentTime || 0) > 0 && (el.readyState == null || el.readyState > 2)) {
+          return true;
+        }
+      }
+      return false;
+    },
+    labelMatches: (label, kind) => {
+      const tokens = {
+        pause: ["pause", "pausa", "pausar", "pausieren", "anhalten", "pauzeren", "pauze", "wstrzymaj", "pozastavit", "keskeytä", "duraklat", "szünet", "παύση", "пауза", "приостановить", "призупинити", "暂停", "暫停", "一時停止", "일시중지", "일시 중지", "หยุด", "tạm dừng", "jeda", "השהה", "إيقاف", "रोकें"],
+        play: ["play", "lecture", "lire", "abspielen", "wiedergeben", "reproducir", "reproduzir", "riproduci", "afspelen", "spela", "afspil", "spille", "toista", "odtwórz", "přehrát", "lejátszás", "oynat", "αναπαραγωγή", "воспроизвести", "відтворити", "播放", "再生", "재생", "เล่น", "phát", "putar", "נגן", "تشغيل", "चलाएँ"],
+      }[kind] || [];
+      if (!label) return false;
+      const l = String(label).toLowerCase();
+      return tokens.some((t) => l.includes(t.toLowerCase()));
+    },
   };
 
   vm.createContext(ctx);

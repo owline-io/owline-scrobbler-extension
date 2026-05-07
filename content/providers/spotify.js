@@ -40,13 +40,11 @@ function getTrackInfo() {
 }
 
 function isPlaying() {
-  const audio = document.querySelector("audio, video");
-  if (audio && !audio.paused && !audio.ended && audio.currentTime > 0) return true;
+  if (anyMediaPlaying()) return true;
   const btn = document.querySelector('[data-testid="control-button-playpause"]');
   if (!btn) return false;
-  const label = (btn.getAttribute("aria-label") || "").toLowerCase();
-  const pauseTokens = ["pause", "pausar", "pausa", "anhalten", "pauzeren", "一時停止"];
-  return pauseTokens.some((t) => label.includes(t));
+  const label = btn.getAttribute("aria-label");
+  return labelMatches(label, "pause");
 }
 
 waitForPlayer({

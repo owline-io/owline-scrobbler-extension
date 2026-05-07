@@ -110,6 +110,90 @@ function waitForPlayer({ source, hasPlayer, getTrackInfo, isPlaying, pollInterva
   tryStart();
 }
 
+const OWLINE_LABEL_TOKENS = {
+  pause: [
+    "pause",        // EN, FR, DE (also), DA, NO, SV (also)
+    "pausa",        // IT, ES, PT, SV, NL, PL, CS, HU
+    "pausar",       // ES, PT
+    "pausieren",    // DE
+    "anhalten",     // DE
+    "pauzeren",     // NL
+    "pauze",        // NL
+    "wstrzymaj",    // PL
+    "pozastavit",   // CS
+    "keskeytä",     // FI
+    "duraklat",     // TR
+    "szünet",       // HU
+    "παύση",        // EL
+    "пауза",        // RU, UK, BG, SR
+    "приостановить",// RU
+    "призупинити",  // UK
+    "暂停",          // ZH-CN
+    "暫停",          // ZH-TW
+    "一時停止",       // JA
+    "일시중지",        // KO
+    "일시 중지",       // KO (with space)
+    "หยุด",           // TH
+    "tạm dừng",      // VI
+    "jeda",          // ID
+    "השהה",          // HE
+    "إيقاف",         // AR
+    "रोकें",            // HI
+  ],
+  play: [
+    "play",         // EN
+    "lecture",      // FR
+    "lire",         // FR (alt)
+    "abspielen",    // DE
+    "wiedergeben",  // DE (alt)
+    "reproducir",   // ES
+    "reproduzir",   // PT
+    "riproduci",    // IT
+    "afspelen",     // NL
+    "spela",        // SV
+    "afspil",       // DA
+    "spille",       // NO
+    "toista",       // FI
+    "odtwórz",      // PL
+    "přehrát",      // CS
+    "lejátszás",    // HU
+    "oynat",        // TR
+    "αναπαραγωγή",  // EL
+    "воспроизвести",// RU
+    "відтворити",   // UK
+    "播放",          // ZH
+    "再生",          // JA
+    "재생",          // KO
+    "เล่น",          // TH
+    "phát",         // VI
+    "putar",        // ID
+    "נגן",          // HE
+    "تشغيل",        // AR
+    "चलाएँ",         // HI
+  ],
+};
+
+function labelMatches(label, kind) {
+  const tokens = OWLINE_LABEL_TOKENS[kind];
+  if (!tokens || !label) return false;
+  const l = String(label).toLowerCase();
+  for (const t of tokens) {
+    if (l.includes(t.toLowerCase())) return true;
+  }
+  return false;
+}
+
+// Locale-agnostic check: any HTMLMediaElement currently playing on the page.
+function anyMediaPlaying() {
+  const els = document.querySelectorAll("audio, video");
+  for (const el of els) {
+    if (!el.paused && !el.ended && el.currentTime > 0 && el.readyState > 2) {
+      return true;
+    }
+  }
+  return false;
+}
+
 function parseDurationText(text) {
   if (!text) return null;
   const cleaned = String(text).replace("-", "").trim();
